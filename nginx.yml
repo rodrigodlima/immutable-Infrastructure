@@ -1,0 +1,94 @@
+---
+- name: Instalar e Configurar Nginx
+  hosts: all
+  become: yes
+  tasks:
+    - name: Atualizar cache do apt
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Instalar Nginx
+      apt:
+        name: nginx
+        state: present
+
+    - name: Criar página HTML customizada
+      copy:
+        content: |
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>Infraestrutura Imutável</title>
+              <style>
+                  body {
+                      font-family: Arial, sans-serif;
+                      max-width: 800px;
+                      margin: 50px auto;
+                      padding: 20px;
+                      background-color: #f0f0f0;
+                  }
+                  .container {
+                      background-color: white;
+                      padding: 30px;
+                      border-radius: 10px;
+                      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                  }
+                  h1 {
+                      color: #4285f4;
+                  }
+                  .badge {
+                      display: inline-block;
+                      padding: 5px 10px;
+                      margin: 5px;
+                      background-color: #34a853;
+                      color: white;
+                      border-radius: 5px;
+                  }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <h1>🚀 Infraestrutura Imutável - Demo</h1>
+                  <p><strong>Esta instância foi provisionada usando:</strong></p>
+                  <div>
+                      <span class="badge">Packer</span>
+                      <span class="badge">Ansible</span>
+                      <span class="badge">Terraform</span>
+                      <span class="badge">GCP</span>
+                  </div>
+                  <hr>
+                  <p>✅ Nginx instalado via Ansible</p>
+                  <p>✅ Imagem criada pelo Packer</p>
+                  <p>✅ Instância provisionada pelo Terraform</p>
+                  <p>✅ Infraestrutura 100% imutável</p>
+                  <hr>
+                  <p><em>Hostname: {{ ansible_hostname }}</em></p>
+                  <p><em>Build Time: {{ ansible_date_time.iso8601 }}</em></p>
+              </div>
+          </body>
+          </html>
+        dest: /var/www/html/index.html
+        mode: '0644'
+
+    - name: Garantir que o Nginx está rodando e habilitado
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Configurar firewall para permitir HTTP
+      ufw:
+        rule: allow
+        port: '80'
+        proto: tcp
+      ignore_errors: yes
+
+    - name: Verificar status do Nginx
+      command: nginx -t
+      register: nginx_test
+      changed_when: false
+
+    - name: Exibir status do Nginx
+      debug:
+        msg: "Nginx configurado com sucesso: {{ nginx_test.stdout }}"

@@ -1,0 +1,21 @@
+# Arquivo de exemplo de variáveis do Terraform
+# Copie este arquivo para terraform.tfvars e preencha com seus valores
+
+# OBRIGATÓRIO: ID do seu projeto GCP
+project_id = "seu-projeto-gcp"
+
+# Região e zona do GCP (opcional - já tem defaults)
+region = "us-central1"
+zone   = "us-central1-a"
+
+# Nome da instância (opcional)
+instance_name = "nginx-immutable-demo"
+
+# Tipo de máquina (opcional - e2-micro para free tier)
+machine_type = "e2-micro"
+
+# Família da imagem criada pelo Packer (deve ser o mesmo nome usado no Packer)
+image_family = "nginx-immutable-family"
+
+# Ambiente
+environment = "demo"

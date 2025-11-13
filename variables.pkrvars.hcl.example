@@ -1,0 +1,14 @@
+# Arquivo de exemplo de variáveis do Packer
+# Copie este arquivo para variables.pkrvars.hcl e preencha com seus valores
+
+# OBRIGATÓRIO: ID do seu projeto GCP
+project_id = "seu-projeto-gcp"
+
+# Zona do GCP
+zone = "us-central1-a"
+
+# Nome base da imagem
+image_name = "nginx-immutable"
+
+# Família da imagem (IMPORTANTE: use o mesmo nome no Terraform)
+image_family = "nginx-immutable-family"
