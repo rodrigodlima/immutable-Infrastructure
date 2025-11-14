@@ -113,7 +113,16 @@ check_config() {
 # Validar configurações
 validate_configs() {
     print_header "Validando Configurações"
-    
+
+    # Inicializar Packer (baixar plugins)
+    print_info "Inicializando Packer e instalando plugins..."
+    if packer init packer/gce-nginx.pkr.hcl; then
+        print_success "Plugins do Packer instalados"
+    else
+        print_error "Falha ao instalar plugins do Packer"
+        exit 1
+    fi
+
     # Validar Packer
     print_info "Validando template Packer..."
     if packer validate -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl; then
@@ -164,15 +173,15 @@ list_images() {
 # Deploy com Terraform
 deploy_infrastructure() {
     print_header "Deploy de Infraestrutura com Terraform"
-    
+
     cd terraform
-    
+
     # Inicializar Terraform se necessário
     if [ ! -d ".terraform" ]; then
         print_info "Inicializando Terraform..."
         terraform init
     fi
-    
+
     # Validar configuração
     print_info "Validando configuração Terraform..."
     if terraform validate; then
@@ -181,11 +190,11 @@ deploy_infrastructure() {
         print_error "Configuração Terraform inválida"
         exit 1
     fi
-    
+
     # Mostrar plano
     print_info "Gerando plano de execução..."
     terraform plan -out=tfplan
-    
+
     # Confirmar deploy
     echo
     read -p "Deseja aplicar as mudanças? (s/n) " -n 1 -r
@@ -194,11 +203,11 @@ deploy_infrastructure() {
         print_info "Aplicando mudanças..."
         if terraform apply tfplan; then
             print_success "Infraestrutura criada com sucesso!"
-            
+
             # Mostrar outputs
             print_header "Informações de Acesso"
             terraform output
-            
+
             echo
             print_success "Deploy concluído!"
             print_info "Acesse o Nginx em: $(terraform output -raw nginx_url)"
@@ -210,7 +219,42 @@ deploy_infrastructure() {
     else
         print_warning "Deploy cancelado pelo usuário"
     fi
-    
+
+    cd ..
+}
+
+# Atualizar instância (substituir pela nova imagem)
+update_instance() {
+    print_header "Atualizando Instância com Nova Imagem"
+
+    cd terraform
+
+    print_warning "Isso irá destruir a instância atual e criar uma nova"
+    print_info "O IP estático será mantido e reatribuído à nova instância"
+
+    echo
+    read -p "Deseja continuar? (s/n) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Ss]$ ]]; then
+        print_info "Substituindo instância..."
+        if terraform apply -replace=google_compute_instance.nginx_server -auto-approve; then
+            print_success "Instância atualizada com sucesso!"
+
+            # Mostrar outputs
+            print_header "Informações de Acesso"
+            terraform output
+
+            echo
+            print_success "Atualização concluída!"
+            print_info "Acesse o Nginx em: $(terraform output -raw nginx_url)"
+        else
+            print_error "Falha ao atualizar instância"
+            exit 1
+        fi
+    else
+        print_warning "Atualização cancelada"
+    fi
+
     cd ..
 }
 
@@ -248,13 +292,14 @@ show_menu() {
     echo "1) Build Completo (Packer + Terraform)"
     echo "2) Apenas Packer (Criar Imagem)"
     echo "3) Apenas Terraform (Deploy)"
-    echo "4) Listar Imagens"
-    echo "5) Destruir Infraestrutura"
-    echo "6) Validar Configurações"
+    echo "4) Atualizar Instância (Nova Imagem)"
+    echo "5) Listar Imagens"
+    echo "6) Destruir Infraestrutura"
+    echo "7) Validar Configurações"
     echo "0) Sair"
     echo
     read -p "Escolha uma opção: " choice
-    
+
     case $choice in
         1)
             check_dependencies
@@ -277,12 +322,15 @@ show_menu() {
             deploy_infrastructure
             ;;
         4)
-            list_images
+            update_instance
             ;;
         5)
-            destroy_infrastructure
+            list_images
             ;;
         6)
+            destroy_infrastructure
+            ;;
+        7)
             check_dependencies
             check_config
             validate_configs
@@ -309,6 +357,7 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     echo "  --full          Build completo (Packer + Terraform)"
     echo "  --packer        Apenas build do Packer"
     echo "  --terraform     Apenas deploy Terraform"
+    echo "  --update        Atualizar instância com nova imagem"
     echo "  --destroy       Destruir infraestrutura"
     echo "  --list          Listar imagens"
     echo "  --validate      Validar configurações"
@@ -333,6 +382,8 @@ elif [ "$1" = "--terraform" ]; then
     check_dependencies
     check_config
     deploy_infrastructure
+elif [ "$1" = "--update" ]; then
+    update_instance
 elif [ "$1" = "--destroy" ]; then
     destroy_infrastructure
 elif [ "$1" = "--list" ]; then

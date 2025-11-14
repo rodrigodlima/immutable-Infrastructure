@@ -21,7 +21,7 @@ data "google_compute_image" "nginx_image" {
   project = var.project_id
 }
 
-# Criar endereço IP estático (opcional)
+# Criar endereço IP estático (persistente entre deploys)
 resource "google_compute_address" "nginx_static_ip" {
   name   = "${var.instance_name}-static-ip"
   region = var.region
@@ -61,7 +61,8 @@ resource "google_compute_firewall" "allow_ssh" {
 
 # Criar a instância GCE
 resource "google_compute_instance" "nginx_server" {
-  name         = var.instance_name
+  # Nome dinâmico baseado na imagem para forçar recriação
+  name         = "${var.instance_name}-${replace(data.google_compute_image.nginx_image.name, "nginx-immutable-", "")}"
   machine_type = var.machine_type
   zone         = var.zone
 
@@ -107,9 +108,5 @@ resource "google_compute_instance" "nginx_server" {
 
   service_account {
     scopes = ["cloud-platform"]
-  }
-
-  lifecycle {
-    create_before_destroy = true
   }
 }

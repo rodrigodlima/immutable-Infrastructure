@@ -2,6 +2,11 @@
 - name: Instalar e Configurar Nginx
   hosts: all
   become: yes
+  vars:
+    # ALTERE ESTAS VARIÁVEIS PARA DEMONSTRAR UMA NOVA VERSÃO
+    deployment_version: "v1.0"
+    deployment_message: "Nova funcionalidade - Sistema de monitoramento adicionado"
+    deployment_color: "#34a676"
   tasks:
     - name: Atualizar cache do apt
       apt:
@@ -17,8 +22,10 @@
       copy:
         content: |
           <!DOCTYPE html>
-          <html>
+          <html lang="pt-BR">
           <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
               <title>Infraestrutura Imutável</title>
               <style>
                   body {
@@ -45,11 +52,41 @@
                       color: white;
                       border-radius: 5px;
                   }
+                  .version-banner {
+                      background: linear-gradient(135deg, {{ deployment_color }}, {{ deployment_color }}dd);
+                      color: white;
+                      padding: 20px;
+                      border-radius: 8px;
+                      margin: 20px 0;
+                      text-align: center;
+                      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+                  }
+                  .version-banner h2 {
+                      margin: 0 0 10px 0;
+                      font-size: 2em;
+                  }
+                  .version-banner p {
+                      margin: 5px 0;
+                      font-size: 1.1em;
+                  }
+                  .info-box {
+                      background-color: #f8f9fa;
+                      padding: 15px;
+                      border-left: 4px solid {{ deployment_color }};
+                      margin: 15px 0;
+                  }
               </style>
           </head>
           <body>
               <div class="container">
                   <h1>🚀 Infraestrutura Imutável - Demo</h1>
+
+                  <!-- Banner de Versão - DESTAQUE VISUAL -->
+                  <div class="version-banner">
+                      <h2>{{ deployment_version }}</h2>
+                      <p>{{ deployment_message }}</p>
+                  </div>
+
                   <p><strong>Esta instância foi provisionada usando:</strong></p>
                   <div>
                       <span class="badge">Packer</span>
@@ -62,9 +99,13 @@
                   <p>✅ Imagem criada pelo Packer</p>
                   <p>✅ Instância provisionada pelo Terraform</p>
                   <p>✅ Infraestrutura 100% imutável</p>
-                  <hr>
-                  <p><em>Hostname: {{ ansible_hostname }}</em></p>
-                  <p><em>Build Time: {{ ansible_date_time.iso8601 }}</em></p>
+
+                  <div class="info-box">
+                      <p><strong>📋 Informações da Imagem:</strong></p>
+                      <p><em>Hostname: {{ ansible_hostname }}</em></p>
+                      <p><em>Build Time: {{ ansible_date_time.iso8601 }}</em></p>
+                      <p><em>Versão: {{ deployment_version }}</em></p>
+                  </div>
               </div>
           </body>
           </html>
