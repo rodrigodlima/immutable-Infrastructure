@@ -15,19 +15,19 @@ provider "google" {
   zone    = var.zone
 }
 
-# Data source para obter a imagem mais recente da família
+# Data source to get the latest image from the family
 data "google_compute_image" "nginx_image" {
   family  = var.image_family
   project = var.project_id
 }
 
-# Criar endereço IP estático (persistente entre deploys)
+# Create static IP address (persistent across deploys)
 resource "google_compute_address" "nginx_static_ip" {
   name   = "${var.instance_name}-static-ip"
   region = var.region
 }
 
-# Criar regra de firewall para permitir HTTP
+# Create firewall rule to allow HTTP
 resource "google_compute_firewall" "allow_http" {
   name    = "allow-http-nginx-demo"
   network = "default"
@@ -40,10 +40,10 @@ resource "google_compute_firewall" "allow_http" {
   source_ranges = ["0.0.0.0/0"]
   target_tags   = ["nginx-server"]
 
-  description = "Permite tráfego HTTP para o servidor Nginx"
+  description = "Allow HTTP traffic to Nginx server"
 }
 
-# Criar regra de firewall para permitir SSH
+# Create firewall rule to allow SSH
 resource "google_compute_firewall" "allow_ssh" {
   name    = "allow-ssh-nginx-demo"
   network = "default"
@@ -56,12 +56,12 @@ resource "google_compute_firewall" "allow_ssh" {
   source_ranges = ["0.0.0.0/0"]
   target_tags   = ["nginx-server"]
 
-  description = "Permite acesso SSH para administração"
+  description = "Allow SSH access for administration"
 }
 
-# Criar a instância GCE
+# Create GCE instance
 resource "google_compute_instance" "nginx_server" {
-  # Nome dinâmico baseado na imagem para forçar recriação
+  # Dynamic name based on image to force recreation
   name         = "${var.instance_name}-${replace(data.google_compute_image.nginx_image.name, "nginx-immutable-", "")}"
   machine_type = var.machine_type
   zone         = var.zone
@@ -98,11 +98,11 @@ resource "google_compute_instance" "nginx_server" {
     type        = "immutable"
   }
 
-  # Startup script (opcional - apenas para logging)
+  # Startup script (optional - for logging only)
   metadata_startup_script = <<-EOF
     #!/bin/bash
-    echo "Instância iniciada - Infraestrutura Imutável" >> /var/log/startup.log
-    echo "Imagem: ${data.google_compute_image.nginx_image.name}" >> /var/log/startup.log
+    echo "Instance started - Immutable Infrastructure" >> /var/log/startup.log
+    echo "Image: ${data.google_compute_image.nginx_image.name}" >> /var/log/startup.log
     echo "Timestamp: $(date)" >> /var/log/startup.log
   EOF
 

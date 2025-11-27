@@ -1,165 +1,165 @@
-# 🎯 README - DEMONSTRAÇÃO
+# 🎯 README - DEMONSTRATION
 
-## 📋 Arquivos Relacionados à Demo
+## 📋 Demo-Related Files
 
-Este projeto inclui documentação completa para sua demonstração:
+This project includes complete documentation for your demonstration:
 
-### 📖 Documentação Principal
-- **README.md** - Documentação técnica completa do projeto
-- **QUICKSTART.md** - Guia rápido para começar em 5 minutos
+### 📖 Main Documentation
+- **README.md** - Complete technical project documentation
+- **QUICKSTART.md** - Quick start guide in 5 minutes
 
-### 🎬 Arquivos de Demonstração
-- **DEMO.md** - Roteiro completo da demonstração (LEIA PRIMEIRO!)
-- **DEMO-CHEATSHEET.md** - Comandos rápidos para copiar/colar
-- **run-demo.sh** - Script automatizado que executa toda a demo
+### 🎬 Demonstration Files
+- **DEMO.md** - Complete demonstration script (READ FIRST!)
+- **DEMO-CHEATSHEET.md** - Quick copy/paste commands
+- **run-demo.sh** - Automated script that executes entire demo
 
-### 📚 Referências
-- **COMANDOS.md** - Referência de todos os comandos
-- **INTEGRACAO.md** - Guia de integração completa
-- **ESTRUTURA.md** - Resumo executivo do projeto
+### 📚 References
+- **COMANDOS.md** - Reference for all commands
+- **INTEGRACAO.md** - Complete integration guide
+- **ESTRUTURA.md** - Executive project summary
 
 ---
 
-## 🚀 3 Formas de Fazer a Demo
+## 🚀 3 Ways to Do the Demo
 
-### Opção 1: Automatizada (Mais Fácil) ⭐
+### Option 1: Automated (Easiest) ⭐
 
 ```bash
-# Configurar projeto
-export PROJECT_ID="seu-projeto-gcp"
+# Configure project
+export PROJECT_ID="your-gcp-project"
 
-# Configurar variáveis
+# Configure variables
 cp packer/variables.pkrvars.hcl.example packer/variables.pkrvars.hcl
 cp terraform/terraform.tfvars.example terraform/terraform.tfvars
-# Editar ambos os arquivos com seu PROJECT_ID
+# Edit both files with your PROJECT_ID
 
-# Executar demo completa
+# Execute complete demo
 chmod +x run-demo.sh
 ./run-demo.sh
 ```
 
-O script vai:
-1. Criar e deployar V1
-2. Criar e deployar V2
-3. Fazer rollback para V1
-4. Mostrar resumo completo
+The script will:
+1. Create and deploy V1
+2. Create and deploy V2
+3. Rollback to V1
+4. Show complete summary
 
-**Tempo:** 25-30 minutos
-
----
-
-### Opção 2: Manual com Cheat Sheet (Recomendado para Apresentação) ⭐⭐
-
-Abra o arquivo **DEMO-CHEATSHEET.md** e copie/cole os comandos de cada seção:
-
-1. Setup inicial (uma vez)
-2. PARTE 1: Deploy V1
-3. PARTE 2: Criar e Deploy V2
-4. PARTE 3: Rollback para V1
-
-**Vantagem:** Você controla o ritmo e pode explicar cada passo
-
-**Tempo:** 15-20 minutos (se V1 estiver pré-deployada)
+**Time:** 25-30 minutes
 
 ---
 
-### Opção 3: Seguir Roteiro Completo (Mais Detalhada) ⭐⭐⭐
+### Option 2: Manual with Cheat Sheet (Recommended for Presentation) ⭐⭐
 
-Abra o arquivo **DEMO.md** e siga o roteiro passo a passo.
+Open the **DEMO-CHEATSHEET.md** file and copy/paste commands from each section:
 
-Inclui:
-- Explicações detalhadas de cada comando
-- O que mostrar em cada etapa
-- Talking points para a apresentação
-- Scripts curtos e longos
-- Respostas para perguntas frequentes
+1. Initial setup (once)
+2. PART 1: Deploy V1
+3. PART 2: Create and Deploy V2
+4. PART 3: Rollback to V1
 
-**Tempo:** 30-35 minutos
+**Advantage:** You control the pace and can explain each step
+
+**Time:** 15-20 minutes (if V1 is pre-deployed)
 
 ---
 
-## 📊 Cenário da Demonstração
+### Option 3: Follow Complete Script (Most Detailed) ⭐⭐⭐
 
-### O Que Você Vai Mostrar
+Open the **DEMO.md** file and follow the step-by-step script.
+
+Includes:
+- Detailed explanations for each command
+- What to show at each stage
+- Talking points for the presentation
+- Short and long scripts
+- Answers to frequently asked questions
+
+**Time:** 30-35 minutes
+
+---
+
+## 📊 Demo Scenario
+
+### What You'll Show
 
 ```
 ┌─────────────────────────────────────────────┐
-│  VERSÃO 1 (Original)                        │
-│  - Design simples azul/verde                │
-│  - Página básica                            │
-│  - "Infraestrutura Imutável - Demo"        │
+│  VERSION 1 (Original)                        │
+│  - Simple blue/green design                 │
+│  - Basic page                               │
+│  - "Immutable Infrastructure - Demo"        │
 └─────────────────────────────────────────────┘
                     ↓
-         [MODIFICAÇÃO DO CÓDIGO]
+         [CODE MODIFICATION]
                     ↓
 ┌─────────────────────────────────────────────┐
-│  VERSÃO 2 (Atualizada)                      │
-│  - Design roxo com gradiente                │
-│  - Badge animado "V2.0"                     │
-│  - Lista de novidades                       │
-│  - Visual completamente diferente           │
+│  VERSION 2 (Updated)                         │
+│  - Purple design with gradient              │
+│  - Animated "V2.0" badge                    │
+│  - List of new features                     │
+│  - Completely different visual              │
 └─────────────────────────────────────────────┘
                     ↓
-         [SIMULAR PROBLEMA]
+         [SIMULATE PROBLEM]
                     ↓
 ┌─────────────────────────────────────────────┐
-│  ROLLBACK → VERSÃO 1 (Restaurada)           │
-│  - Design original de volta                 │
-│  - Em minutos, não horas                    │
-│  - Sem perda de dados                       │
+│  ROLLBACK → VERSION 1 (Restored)             │
+│  - Original design back                     │
+│  - In minutes, not hours                    │
+│  - No data loss                             │
 └─────────────────────────────────────────────┘
 ```
 
-### Conceitos Demonstrados
+### Concepts Demonstrated
 
-✅ **Imutabilidade** - Nunca modificar servidores  
-✅ **Versionamento** - Múltiplas versões coexistem  
-✅ **Rollback Rápido** - Voltar para qualquer versão  
-✅ **Confiabilidade** - Mesma imagem = mesmo resultado  
-✅ **DevOps Moderno** - Base para CI/CD
+✅ **Immutability** - Never modify servers
+✅ **Versioning** - Multiple versions coexist
+✅ **Fast Rollback** - Return to any version
+✅ **Reliability** - Same image = same result
+✅ **Modern DevOps** - Foundation for CI/CD
 
 ---
 
-## ⏱️ Timing Sugerido
+## ⏱️ Suggested Timing
 
-### Demo Rápida (15 min)
-- **Pré-requisito:** V1 já deployada
-- Mostrar V1: 2 min
-- Modificar código: 2 min
-- Build V2: 8 min (explicar conceitos!)
+### Quick Demo (15 min)
+- **Prerequisite:** V1 already deployed
+- Show V1: 2 min
+- Modify code: 2 min
+- Build V2: 8 min (explain concepts!)
 - Deploy V2: 2 min
 - Rollback: 1 min
 
-### Demo Completa (30 min)
+### Complete Demo (30 min)
 - Setup: 2 min
 - V1 build + deploy: 10 min
-- Mostrar V1: 2 min
-- Modificar código: 2 min
+- Show V1: 2 min
+- Modify code: 2 min
 - V2 build: 8 min
 - Deploy V2: 3 min
-- Mostrar V2: 2 min
+- Show V2: 2 min
 - Rollback: 5 min
 
 ---
 
-## 🎯 Preparação Antes da Apresentação
+## 🎯 Preparation Before Presentation
 
-### Dia Anterior
-1. Testar tudo do início ao fim
-2. Anotar tempos de cada etapa
-3. Preparar respostas para perguntas
+### Day Before
+1. Test everything from start to finish
+2. Note times for each stage
+3. Prepare answers to questions
 
-### 1 Hora Antes
+### 1 Hour Before
 ```bash
-# Deployar V1 (economiza 10 min na apresentação)
-export PROJECT_ID="seu-projeto-gcp"
+# Deploy V1 (saves 10 min in presentation)
+export PROJECT_ID="your-gcp-project"
 gcloud config set project $PROJECT_ID
 
-# Criar imagem e deploy
+# Create image and deploy
 packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
 cd terraform && terraform init && terraform apply -auto-approve && cd ..
 
-# Anotar variáveis
+# Note variables
 export IMAGE_V1=$(gcloud compute images list --filter="family:nginx-immutable-family" --format="value(name)" --limit=1)
 export NGINX_URL=$(cd terraform && terraform output -raw nginx_url && cd ..)
 
@@ -167,152 +167,152 @@ echo "V1: $IMAGE_V1"
 echo "URL: $NGINX_URL"
 ```
 
-### Durante a Apresentação
-- Ter 2 janelas abertas: Terminal + Browser
-- Browser aberto em $NGINX_URL
-- Terminal pronto para comandos
-- Arquivo DEMO-CHEATSHEET.md aberto
+### During Presentation
+- Have 2 windows open: Terminal + Browser
+- Browser open at $NGINX_URL
+- Terminal ready for commands
+- DEMO-CHEATSHEET.md file open
 
 ---
 
-## 🐛 Troubleshooting Comum
+## 🐛 Common Troubleshooting
 
-### Packer Falha
+### Packer Fails
 ```bash
-# Ver logs detalhados
+# View detailed logs
 PACKER_LOG=1 packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
 
-# Verificar permissões
+# Verify permissions
 gcloud auth application-default print-access-token
 
-# Verificar quota
+# Check quota
 gcloud compute project-info describe --project=$PROJECT_ID
 ```
 
-### Terraform Falha
+### Terraform Fails
 ```bash
 # Refresh state
 cd terraform && terraform refresh
 
-# Ver estado
+# View state
 terraform show
 
-# Reimportar recurso
+# Reimport resource
 terraform import google_compute_instance.nginx_server projects/$PROJECT_ID/zones/us-central1-a/instances/nginx-immutable-demo
 ```
 
-### Nginx Não Responde
+### Nginx Doesn't Respond
 ```bash
-# Aguardar mais tempo (até 30s)
+# Wait longer (up to 30s)
 sleep 30
 
-# Verificar status
+# Check status
 gcloud compute instances describe nginx-immutable-demo --zone=us-central1-a --format="value(status)"
 
-# SSH e verificar
+# SSH and check
 gcloud compute ssh nginx-immutable-demo --zone=us-central1-a
 sudo systemctl status nginx
 ```
 
 ---
 
-## 💡 Dicas de Apresentação
+## 💡 Presentation Tips
 
-### Durante os Builds do Packer (8 min)
-Explique os conceitos:
-- O que é infraestrutura imutável
-- Analogia do DVD vs Fita Cassete
-- Benefícios (confiabilidade, rollback, zero drift)
-- Casos de uso reais
+### During Packer Builds (8 min)
+Explain the concepts:
+- What is immutable infrastructure
+- DVD vs Cassette Tape analogy
+- Benefits (reliability, rollback, zero drift)
+- Real-world use cases
 
-### Pontos a Enfatizar
-1. **"Nunca fazemos SSH para modificar"**
-2. **"Mesma imagem = mesmo resultado sempre"**
-3. **"Rollback em minutos, não horas"**
-4. **"Funciona com containers e VMs"**
+### Points to Emphasize
+1. **"We never SSH to modify"**
+2. **"Same image = same result always"**
+3. **"Rollback in minutes, not hours"**
+4. **"Works with containers and VMs"**
 
-### Respostas para Perguntas Frequentes
+### Answers to Frequently Asked Questions
 
-**P: E o downtime durante a atualização?**  
-R: Use Blue-Green deployment ou Load Balancer. Zero downtime!
+**Q: What about downtime during update?**
+A: Use Blue-Green deployment or Load Balancer. Zero downtime!
 
-**P: E os dados do banco?**  
-R: Dados ficam separados. Usamos volumes externos/persistentes.
+**Q: What about database data?**
+A: Data stays separate. We use external/persistent volumes.
 
-**P: Não é mais caro?**  
-R: Imagens são baratas (~$0.05/GB/mês). Ganha-se em confiabilidade.
+**Q: Isn't it more expensive?**
+A: Images are cheap (~$0.05/GB/month). You gain in reliability.
 
-**P: Funciona com containers?**  
-R: Sim! Mesmo princípio. Docker images são imutáveis.
+**Q: Does it work with containers?**
+A: Yes! Same principle. Docker images are immutable.
 
-**P: Como fazer em produção?**  
-R: Adicionar: Auto Scaling, Load Balancer, Multi-region, CI/CD.
+**Q: How to do in production?**
+A: Add: Auto Scaling, Load Balancer, Multi-region, CI/CD.
 
 ---
 
-## 📁 Estrutura de Arquivos
+## 📁 File Structure
 
 ```
 .
-├── README-DEMO.md              ← VOCÊ ESTÁ AQUI
-├── DEMO.md                     ← Roteiro completo
-├── DEMO-CHEATSHEET.md          ← Comandos rápidos
-├── run-demo.sh                 ← Script automatizado
-├── README.md                   ← Documentação técnica
-├── QUICKSTART.md               ← Início rápido
+├── README-DEMO.md              ← YOU ARE HERE
+├── DEMO.md                     ← Complete script
+├── DEMO-CHEATSHEET.md          ← Quick commands
+├── run-demo.sh                 ← Automated script
+├── README.md                   ← Technical documentation
+├── QUICKSTART.md               ← Quick start
 ├── ansible/
-│   └── nginx.yml               ← Configuração Nginx
+│   └── nginx.yml               ← Nginx configuration
 ├── packer/
-│   └── gce-nginx.pkr.hcl      ← Template imagem
+│   └── gce-nginx.pkr.hcl      ← Image template
 └── terraform/
-    └── *.tf                    ← Infraestrutura
+    └── *.tf                    ← Infrastructure
 ```
 
 ---
 
-## ✅ Checklist Pré-Demo
+## ✅ Pre-Demo Checklist
 
-- [ ] Projeto GCP configurado
-- [ ] APIs habilitadas
-- [ ] Credenciais configuradas
-- [ ] Variáveis preenchidas (packer + terraform)
-- [ ] V1 deployada (opcional, economiza tempo)
-- [ ] Browser aberto em $NGINX_URL
-- [ ] Terminal pronto
-- [ ] DEMO-CHEATSHEET.md aberto
-- [ ] Testado pelo menos uma vez
+- [ ] GCP project configured
+- [ ] APIs enabled
+- [ ] Credentials configured
+- [ ] Variables filled (packer + terraform)
+- [ ] V1 deployed (optional, saves time)
+- [ ] Browser open at $NGINX_URL
+- [ ] Terminal ready
+- [ ] DEMO-CHEATSHEET.md open
+- [ ] Tested at least once
 
 ---
 
-## 🎉 Após a Demo
+## 🎉 After the Demo
 
-### Limpeza
+### Cleanup
 ```bash
-# Destruir recursos
+# Destroy resources
 cd terraform && terraform destroy -auto-approve && cd ..
 
-# Deletar imagens (opcional)
+# Delete images (optional)
 gcloud compute images list --filter="family:nginx-immutable-family" \
   --format="value(name)" | \
   xargs -I {} gcloud compute images delete {} --quiet
 ```
 
-### Compartilhar
-- Código está no GitHub (se você subir)
-- Documentação completa incluída
-- Fácil de replicar
+### Share
+- Code is on GitHub (if you upload)
+- Complete documentation included
+- Easy to replicate
 
 ---
 
-## 📞 Precisa de Ajuda?
+## 📞 Need Help?
 
-1. Leia **DEMO.md** para detalhes completos
-2. Use **DEMO-CHEATSHEET.md** para comandos rápidos
-3. Consulte **COMANDOS.md** para referência
+1. Read **DEMO.md** for complete details
+2. Use **DEMO-CHEATSHEET.md** for quick commands
+3. Consult **COMANDOS.md** for reference
 4. Execute `./run-demo.sh --help`
 
 ---
 
-**🚀 Boa sorte com sua demonstração!**
+**🚀 Good luck with your demonstration!**
 
-*Lembre-se: A melhor demo é aquela que você testou antes! 😉*
+*Remember: The best demo is the one you tested before! 😉*

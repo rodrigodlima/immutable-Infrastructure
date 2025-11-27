@@ -1,40 +1,40 @@
 variable "project_id" {
-  description = "ID do projeto GCP"
+  description = "GCP project ID"
   type        = string
 }
 
 variable "region" {
-  description = "Região do GCP"
+  description = "GCP region"
   type        = string
   default     = "us-central1"
 }
 
 variable "zone" {
-  description = "Zona do GCP"
+  description = "GCP zone"
   type        = string
   default     = "us-central1-a"
 }
 
 variable "instance_name" {
-  description = "Nome da instância GCE"
+  description = "GCE instance name"
   type        = string
   default     = "nginx-immutable-demo"
 }
 
 variable "machine_type" {
-  description = "Tipo de máquina GCE"
+  description = "GCE machine type"
   type        = string
   default     = "e2-micro"
 }
 
 variable "image_family" {
-  description = "Família da imagem criada pelo Packer"
+  description = "Image family created by Packer"
   type        = string
   default     = "nginx-immutable-family"
 }
 
 variable "environment" {
-  description = "Ambiente de deployment"
+  description = "Deployment environment"
   type        = string
   default     = "demo"
 }

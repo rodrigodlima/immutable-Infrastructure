@@ -1,44 +1,44 @@
 output "instance_name" {
-  description = "Nome da instância GCE"
+  description = "GCE instance name"
   value       = google_compute_instance.nginx_server.name
 }
 
 output "instance_id" {
-  description = "ID da instância GCE"
+  description = "GCE instance ID"
   value       = google_compute_instance.nginx_server.instance_id
 }
 
 output "external_ip" {
-  description = "Endereço IP público da instância"
+  description = "Instance public IP address"
   value       = google_compute_address.nginx_static_ip.address
 }
 
 output "nginx_url" {
-  description = "URL para acessar o Nginx"
+  description = "URL to access Nginx"
   value       = "http://${google_compute_address.nginx_static_ip.address}"
 }
 
 output "ssh_command" {
-  description = "Comando SSH para acessar a instância"
+  description = "SSH command to access the instance"
   value       = "gcloud compute ssh ${google_compute_instance.nginx_server.name} --zone=${var.zone}"
 }
 
 output "image_used" {
-  description = "Imagem utilizada para criar a instância"
+  description = "Image used to create the instance"
   value       = data.google_compute_image.nginx_image.name
 }
 
 output "image_family" {
-  description = "Família da imagem utilizada"
+  description = "Image family used"
   value       = data.google_compute_image.nginx_image.family
 }
 
 output "instance_zone" {
-  description = "Zona onde a instância está rodando"
+  description = "Zone where the instance is running"
   value       = google_compute_instance.nginx_server.zone
 }
 
 output "instance_tags" {
-  description = "Tags da instância"
+  description = "Instance tags"
   value       = google_compute_instance.nginx_server.tags
 }

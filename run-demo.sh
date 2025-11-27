@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# Script de Demonstração Automática - Infraestrutura Imutável
-# Executa o ciclo completo: v1 -> v2 -> rollback v1
 
 set -e
 
@@ -31,19 +29,18 @@ print_error() {
 }
 
 pause_demo() {
-    echo -e "\n${PURPLE}Pressione ENTER para continuar...${NC}"
+    echo -e "\n${PURPLE}Press ENTER to continue...${NC}"
     read
 }
 
 # Verificar se está no diretório correto
 if [ ! -f "ansible/nginx.yml" ] || [ ! -f "packer/gce-nginx.pkr.hcl" ]; then
-    print_error "Execute este script do diretório raiz do projeto!"
+    print_error "Exec this script from root project!"
     exit 1
 fi
 
-# Verificar variáveis de ambiente
 if [ -z "$PROJECT_ID" ]; then
-    print_error "Defina PROJECT_ID: export PROJECT_ID='seu-projeto-gcp'"
+    print_error "Define PROJECT_ID: export PROJECT_ID='your-gcp-project'"
     exit 1
 fi
 

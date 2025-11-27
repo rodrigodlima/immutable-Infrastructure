@@ -1,32 +1,32 @@
 ---
-- name: Instalar e Configurar Nginx
+- name: Install and Configure Nginx
   hosts: all
   become: yes
   vars:
-    # ALTERE ESTAS VARIÁVEIS PARA DEMONSTRAR UMA NOVA VERSÃO
+    # CHANGE THESE VARIABLES TO DEMONSTRATE A NEW VERSION
     deployment_version: "v1.0"
-    deployment_message: "Nova funcionalidade - Sistema de monitoramento adicionado"
+    deployment_message: "New feature - Monitoring system added"
     deployment_color: "#34a676"
   tasks:
-    - name: Atualizar cache do apt
+    - name: Update apt cache
       apt:
         update_cache: yes
         cache_valid_time: 3600
 
-    - name: Instalar Nginx
+    - name: Install Nginx
       apt:
         name: nginx
         state: present
 
-    - name: Criar página HTML customizada
+    - name: Create custom HTML page
       copy:
         content: |
           <!DOCTYPE html>
-          <html lang="pt-BR">
+          <html lang="en">
           <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Infraestrutura Imutável</title>
+              <title>Immutable Infrastructure</title>
               <style>
                   body {
                       font-family: Arial, sans-serif;
@@ -79,15 +79,15 @@
           </head>
           <body>
               <div class="container">
-                  <h1>🚀 Infraestrutura Imutável - Demo</h1>
+                  <h1>🚀 Immutable Infrastructure - Demo</h1>
 
-                  <!-- Banner de Versão - DESTAQUE VISUAL -->
+                  <!-- Version Banner - VISUAL HIGHLIGHT -->
                   <div class="version-banner">
                       <h2>{{ deployment_version }}</h2>
                       <p>{{ deployment_message }}</p>
                   </div>
 
-                  <p><strong>Esta instância foi provisionada usando:</strong></p>
+                  <p><strong>This instance was provisioned using:</strong></p>
                   <div>
                       <span class="badge">Packer</span>
                       <span class="badge">Ansible</span>
@@ -95,16 +95,16 @@
                       <span class="badge">GCP</span>
                   </div>
                   <hr>
-                  <p>✅ Nginx instalado via Ansible</p>
-                  <p>✅ Imagem criada pelo Packer</p>
-                  <p>✅ Instância provisionada pelo Terraform</p>
-                  <p>✅ Infraestrutura 100% imutável</p>
+                  <p>✅ Nginx installed via Ansible</p>
+                  <p>✅ Image created by Packer</p>
+                  <p>✅ Instance provisioned by Terraform</p>
+                  <p>✅ 100% immutable infrastructure</p>
 
                   <div class="info-box">
-                      <p><strong>📋 Informações da Imagem:</strong></p>
+                      <p><strong>📋 Image Information:</strong></p>
                       <p><em>Hostname: {{ ansible_hostname }}</em></p>
                       <p><em>Build Time: {{ ansible_date_time.iso8601 }}</em></p>
-                      <p><em>Versão: {{ deployment_version }}</em></p>
+                      <p><em>Version: {{ deployment_version }}</em></p>
                   </div>
               </div>
           </body>
@@ -112,24 +112,24 @@
         dest: /var/www/html/index.html
         mode: '0644'
 
-    - name: Garantir que o Nginx está rodando e habilitado
+    - name: Ensure Nginx is running and enabled
       systemd:
         name: nginx
         state: started
         enabled: yes
 
-    - name: Configurar firewall para permitir HTTP
+    - name: Configure firewall to allow HTTP
       ufw:
         rule: allow
         port: '80'
         proto: tcp
       ignore_errors: yes
 
-    - name: Verificar status do Nginx
+    - name: Verify Nginx status
       command: nginx -t
       register: nginx_test
       changed_when: false
 
-    - name: Exibir status do Nginx
+    - name: Display Nginx status
       debug:
-        msg: "Nginx configurado com sucesso: {{ nginx_test.stdout }}"
+        msg: "Nginx successfully configured: {{ nginx_test.stdout }}"

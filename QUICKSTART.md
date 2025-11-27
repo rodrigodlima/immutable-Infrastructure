@@ -1,61 +1,61 @@
-# 🚀 Quick Start - 5 Minutos para Deploy
+# 🚀 Quick Start - 5 Minutes to Deploy
 
-## Pré-requisitos
-- Google Cloud SDK instalado e configurado
-- Terraform, Packer e Ansible instalados
-- Projeto GCP ativo
+## Prerequisites
+- Google Cloud SDK installed and configured
+- Terraform, Packer and Ansible installed
+- Active GCP project
 
-## Comandos Rápidos
+## Quick Commands
 
-### 1. Configurar Projeto GCP
+### 1. Configure GCP Project
 ```bash
-export PROJECT_ID="seu-projeto-gcp"
+export PROJECT_ID="your-gcp-project"
 gcloud config set project $PROJECT_ID
 gcloud services enable compute.googleapis.com
 gcloud auth application-default login
 ```
 
-### 2. Configurar Variáveis
+### 2. Configure Variables
 ```bash
 # Packer
 cp packer/variables.pkrvars.hcl.example packer/variables.pkrvars.hcl
-nano packer/variables.pkrvars.hcl  # Adicionar seu project_id
+nano packer/variables.pkrvars.hcl  # Add your project_id
 
 # Terraform
 cp terraform/terraform.tfvars.example terraform/terraform.tfvars
-nano terraform/terraform.tfvars  # Adicionar seu project_id
+nano terraform/terraform.tfvars  # Add your project_id
 ```
 
-### 3. Executar Deploy Automatizado
+### 3. Execute Automated Deploy
 ```bash
-# Opção 1: Script interativo
+# Option 1: Interactive script
 ./deploy.sh
 
-# Opção 2: Deploy completo direto
+# Option 2: Complete direct deploy
 ./deploy.sh --full
 
-# Opção 3: Passo a passo manual
-./deploy.sh --packer    # Criar imagem
-./deploy.sh --terraform # Deploy infraestrutura
+# Option 3: Step-by-step manual
+./deploy.sh --packer    # Create image
+./deploy.sh --terraform # Deploy infrastructure
 ```
 
-### 4. Acessar Aplicação
+### 4. Access Application
 ```bash
-# Obter URL
+# Get URL
 cd terraform
 terraform output nginx_url
 
-# Testar
+# Test
 curl $(terraform output -raw nginx_url)
 ```
 
-## Limpeza
+## Cleanup
 ```bash
 ./deploy.sh --destroy
 ```
 
 ---
 
-**Tempo total estimado:** 10-15 minutos (incluindo build da imagem)
+**Estimated total time:** 10-15 minutes (including image build)
 
-Para documentação completa, veja [README.md](README.md)
+For complete documentation, see [README.md](README.md)

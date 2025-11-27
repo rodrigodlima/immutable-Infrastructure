@@ -1,79 +1,79 @@
-# 📝 CHEAT SHEET - Demo Rápida
+# 📝 CHEAT SHEET - Quick Demo
 
-## ⚡ Comandos Essenciais para a Demo
+## ⚡ Essential Commands for Demo
 
-### 🚀 Setup Inicial (Execute UMA vez)
+### 🚀 Initial Setup (Run ONCE)
 
 ```bash
-# Configurar projeto
-export PROJECT_ID="seu-projeto-gcp"
+# Configure project
+export PROJECT_ID="your-gcp-project"
 gcloud config set project $PROJECT_ID
 gcloud services enable compute.googleapis.com
 gcloud auth application-default login
 
-# Configurar variáveis
+# Configure variables
 cp packer/variables.pkrvars.hcl.example packer/variables.pkrvars.hcl
 cp terraform/terraform.tfvars.example terraform/terraform.tfvars
 
-# Editar com seu project_id (Linux/Mac)
-sed -i "s/seu-projeto-gcp/$PROJECT_ID/g" packer/variables.pkrvars.hcl
-sed -i "s/seu-projeto-gcp/$PROJECT_ID/g" terraform/terraform.tfvars
+# Edit with your project_id (Linux/Mac)
+sed -i "s/your-gcp-project/$PROJECT_ID/g" packer/variables.pkrvars.hcl
+sed -i "s/your-gcp-project/$PROJECT_ID/g" terraform/terraform.tfvars
 ```
 
 ---
 
-## 📦 PARTE 1: Deploy V1
+## 📦 PART 1: Deploy V1
 
 ```bash
-# Criar imagem V1
+# Create V1 image
 packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
 
-# Anotar nome da imagem V1
+# Note V1 image name
 export IMAGE_V1=$(gcloud compute images list --filter="family:nginx-immutable-family" --format="value(name)" --sort-by=creationTimestamp --limit=1)
 echo "V1: $IMAGE_V1"
 
-# Deploy infraestrutura
+# Deploy infrastructure
 cd terraform
 terraform init
 terraform apply -auto-approve
 
-# Obter URL
+# Get URL
 export NGINX_URL=$(terraform output -raw nginx_url)
 export NGINX_IP=$(terraform output -raw external_ip)
 echo "URL: $NGINX_URL"
 cd ..
 
-# Testar V1
+# Test V1
 curl $NGINX_IP
-xdg-open $NGINX_URL  # ou 'open' no macOS
+xdg-open $NGINX_URL  # or 'open' on macOS
 ```
 
 ---
 
-## 🆕 PARTE 2: Criar e Deploy V2
+## 🆕 PART 2: Create and Deploy V2
 
 ```bash
 # Backup V1
 cp ansible/nginx.yml ansible/nginx.yml.v1
 
-# Criar conteúdo V2 (copie todo o bloco abaixo)
+# Create V2 content (copy entire block below)
 cat > ansible/nginx.yml << 'EOF'
 ---
-- name: Instalar e Configurar Nginx - VERSÃO 2
+- name: Install and Configure Nginx - VERSION 2
   hosts: all
   become: yes
   tasks:
-    - name: Atualizar cache do apt
+    - name: Update apt cache
       apt:
         update_cache: yes
         cache_valid_time: 3600
 
-    - name: Instalar Nginx
+    - name: Install Nginx
       apt:
         name: nginx
         state: present
 
-    - name: Criar página HTML - VERSÃO 2
+    - name: Create HTML page - VERSION 2
       copy:
         content: |
           <!DOCTYPE html>
@@ -116,39 +116,39 @@ cat > ansible/nginx.yml << 'EOF'
                   <h1>🚀 Infraestrutura Imutável</h1>
                   <div class="version-badge">✨ VERSÃO 2.0 ✨</div>
                   <div class="new">
-                      <h3>🎉 Novidades da V2:</h3>
+                      <h3>🎉 What's New in V2:</h3>
                       <ul>
-                          <li>✅ Novo design com gradiente roxo</li>
-                          <li>✅ Badge animado de versão</li>
-                          <li>✅ Layout completamente novo</li>
-                          <li>✅ Demonstração de atualização imutável</li>
+                          <li>✅ New design with purple gradient</li>
+                          <li>✅ Animated version badge</li>
+                          <li>✅ Completely new layout</li>
+                          <li>✅ Demonstration of immutable update</li>
                       </ul>
                   </div>
                   <hr>
-                  <p>✅ Criado com Packer + Ansible + Terraform</p>
-                  <p>🔄 Rollback disponível para V1!</p>
-                  <p><strong style="color: #f5576c;">⚡ IMAGEM: 2.0 ⚡</strong></p>
+                  <p>✅ Created with Packer + Ansible + Terraform</p>
+                  <p>🔄 Rollback available to V1!</p>
+                  <p><strong style="color: #f5576c;">⚡ IMAGE: 2.0 ⚡</strong></p>
               </div>
           </body>
           </html>
         dest: /var/www/html/index.html
         mode: '0644'
 
-    - name: Garantir Nginx rodando
+    - name: Ensure Nginx is running
       systemd:
         name: nginx
         state: started
         enabled: yes
 EOF
 
-# Criar imagem V2
+# Create V2 image
 packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
 
-# Anotar nome da imagem V2
+# Note V2 image name
 export IMAGE_V2=$(gcloud compute images list --filter="family:nginx-immutable-family" --format="value(name)" --sort-by=~creationTimestamp --limit=1)
 echo "V2: $IMAGE_V2"
 
-# Listar ambas as imagens
+# List both images
 gcloud compute images list --filter="family:nginx-immutable-family" --format="table(name,creationTimestamp)"
 
 # Deploy V2
@@ -156,180 +156,180 @@ cd terraform
 terraform apply -replace=google_compute_instance.nginx_server -auto-approve
 cd ..
 
-# Testar V2
+# Test V2
 sleep 10
-curl $NGINX_IP | grep -i "versão"
+curl $NGINX_IP | grep -i "version"
 xdg-open $NGINX_URL
 ```
 
 ---
 
-## 🔄 PARTE 3: Rollback para V1
+## 🔄 PART 3: Rollback to V1
 
 ```bash
-# Verificar imagens disponíveis
-echo "Imagem V1: $IMAGE_V1"
-echo "Imagem V2: $IMAGE_V2"
+# Check available images
+echo "V1 Image: $IMAGE_V1"
+echo "V2 Image: $IMAGE_V2"
 
 # Rollback via Terraform
 cd terraform
 
-# Backup do main.tf
+# Backup main.tf
 cp main.tf main.tf.backup
 
-# Forçar uso da V1 (trocar 'family' por 'name')
+# Force use of V1 (change 'family' to 'name')
 sed "s|family  = var.image_family|name    = \"$IMAGE_V1\"|" main.tf.backup > main.tf
 
-# Aplicar rollback
+# Apply rollback
 terraform apply -replace=google_compute_instance.nginx_server -auto-approve
 
-# Restaurar main.tf
+# Restore main.tf
 mv main.tf.backup main.tf
 
 cd ..
 
-# Testar rollback
+# Test rollback
 sleep 10
 curl $NGINX_IP
 xdg-open $NGINX_URL
 
-# Restaurar ansible para V1
+# Restore ansible to V1
 mv ansible/nginx.yml.v1 ansible/nginx.yml
 ```
 
 ---
 
-## 🧹 Limpeza
+## 🧹 Cleanup
 
 ```bash
-# Destruir infraestrutura
+# Destroy infrastructure
 cd terraform
 terraform destroy -auto-approve
 cd ..
 
-# Listar imagens
+# List images
 gcloud compute images list --filter="family:nginx-immutable-family"
 
-# Deletar TODAS as imagens (opcional)
+# Delete ALL images (optional)
 gcloud compute images list --filter="family:nginx-immutable-family" --format="value(name)" | xargs -I {} gcloud compute images delete {} --quiet
 ```
 
 ---
 
-## 🎯 Comandos de Verificação
+## 🎯 Verification Commands
 
 ```bash
-# Ver status da instância
+# View instance status
 gcloud compute instances describe nginx-immutable-demo --zone=us-central1-a --format="value(status)"
 
-# Ver IP da instância
+# View instance IP
 cd terraform && terraform output external_ip && cd ..
 
-# Testar HTTP
+# Test HTTP
 curl -I $NGINX_IP
 
-# Ver conteúdo HTML
+# View HTML content
 curl $NGINX_IP
 
-# Ver imagens disponíveis
+# View available images
 gcloud compute images list --filter="family:nginx-immutable-family" --format="table(name,family,creationTimestamp,diskSizeGb)"
 
-# Ver qual imagem está em uso
+# View which image is in use
 cd terraform && terraform show | grep "image.*nginx" && cd ..
 ```
 
 ---
 
-## 💡 Dicas Rápidas
+## 💡 Quick Tips
 
-### Preparar Demo Antes da Apresentação
+### Prepare Demo Before Presentation
 
 ```bash
-# Execute V1 antes da apresentação (economiza 10 min)
-export PROJECT_ID="seu-projeto-gcp"
-# ... configurar variáveis ...
+# Run V1 before presentation (saves 10 min)
+export PROJECT_ID="your-gcp-project"
+# ... configure variables ...
 packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
 cd terraform && terraform init && terraform apply -auto-approve && cd ..
 
-# Anote os nomes das variáveis
+# Note variable names
 export IMAGE_V1=$(gcloud compute images list --filter="family:nginx-immutable-family" --format="value(name)" --limit=1)
 export NGINX_URL=$(cd terraform && terraform output -raw nginx_url && cd ..)
 ```
 
-### Durante a Demo
+### During the Demo
 
 ```bash
-# Preparar janelas side-by-side:
-# 1. Terminal com comandos
-# 2. Browser com $NGINX_URL
-# 3. Slides (opcional)
+# Prepare side-by-side windows:
+# 1. Terminal with commands
+# 2. Browser with $NGINX_URL
+# 3. Slides (optional)
 
-# Ter aliases prontos:
+# Have aliases ready:
 alias v1-to-v2="packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl && cd terraform && terraform apply -replace=google_compute_instance.nginx_server -auto-approve && cd .."
 alias rollback="cd terraform && terraform apply -replace=google_compute_instance.nginx_server && cd .."
 ```
 
-### Troubleshooting Rápido
+### Quick Troubleshooting
 
 ```bash
-# Se Packer falhar
+# If Packer fails
 PACKER_LOG=1 packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
 
-# Se Terraform falhar
+# If Terraform fails
 cd terraform && terraform show && terraform refresh
 
-# Se Nginx não responder
+# If Nginx doesn't respond
 gcloud compute ssh nginx-immutable-demo --zone=us-central1-a -- sudo systemctl status nginx
 ```
 
 ---
 
-## ⏱️ Timing da Demo
+## ⏱️ Demo Timing
 
-- **Setup inicial:** 2 min (ou pré-feito)
-- **V1 build + deploy:** 10 min (ou pré-feito)
-- **Mostrar V1:** 2 min
-- **Criar V2:** 2 min (apenas modificar arquivo)
-- **V2 build:** 8 min (momento para explicar conceitos!)
+- **Initial setup:** 2 min (or pre-done)
+- **V1 build + deploy:** 10 min (or pre-done)
+- **Show V1:** 2 min
+- **Create V2:** 2 min (just modify file)
+- **V2 build:** 8 min (time to explain concepts!)
 - **Deploy V2:** 3 min
-- **Mostrar V2:** 2 min
+- **Show V2:** 2 min
 - **Rollback:** 5 min
-- **Conclusão:** 1 min
+- **Conclusion:** 1 min
 
-**Total:** ~35 min (ou 15 min se V1 estiver pré-deployada)
+**Total:** ~35 min (or 15 min if V1 is pre-deployed)
 
 ---
 
 ## 🎤 Talking Points
 
-Enquanto espera builds do Packer (8 min):
+While waiting for Packer builds (8 min):
 
-- "Infraestrutura imutável = DVD, não fita cassete"
-- "Nunca modificamos servidores, sempre criamos novos"
-- "Mesma imagem = mesmo resultado, sempre"
-- "Rollback em minutos, não horas"
+- "Immutable infrastructure = DVD, not cassette tape"
+- "Never modify servers, always create new ones"
+- "Same image = same result, always"
+- "Rollback in minutes, not hours"
 - "Zero configuration drift"
-- "Ideal para microservices e containers"
-- "Base para CI/CD moderno"
+- "Ideal for microservices and containers"
+- "Foundation for modern CI/CD"
 
 ---
 
-## 📱 One-Liners para Copiar/Colar
+## 📱 One-Liners to Copy/Paste
 
 ```bash
-# Deploy completo V1
+# Complete V1 deploy
 packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl && cd terraform && terraform init && terraform apply -auto-approve && cd ..
 
-# Ver e abrir V1
+# View and open V1
 export NGINX_URL=$(cd terraform && terraform output -raw nginx_url && cd ..) && echo $NGINX_URL && xdg-open $NGINX_URL
 
-# Build e deploy V2 (após modificar ansible/nginx.yml)
+# Build and deploy V2 (after modifying ansible/nginx.yml)
 packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl && cd terraform && terraform apply -replace=google_compute_instance.nginx_server -auto-approve && cd ..
 
-# Limpeza completa
+# Complete cleanup
 cd terraform && terraform destroy -auto-approve && cd .. && gcloud compute images list --filter="family:nginx-immutable-family" --format="value(name)" | xargs -I {} gcloud compute images delete {} --quiet
 ```
 
 ---
 
-**🎉 Sucesso na sua demo!**
+**🎉 Success with your demo!**

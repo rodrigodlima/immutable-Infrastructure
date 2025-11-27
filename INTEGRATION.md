@@ -1,22 +1,22 @@
-# 🔗 Integração Completa: Packer + Ansible + Terraform
+# 🔗 Complete Integration: Packer + Ansible + Terraform
 
-## 📋 Visão Geral da Integração
+## 📋 Integration Overview
 
-Este guia mostra como os três componentes trabalham juntos para criar infraestrutura imutável.
+This guide shows how the three components work together to create immutable infrastructure.
 
 ```
 ANSIBLE ──> PACKER ──> TERRAFORM
   ↓           ↓           ↓
-Config    Imagem      Infra
+Config    Image       Infra
 ```
 
-## 🎯 Fluxo Completo de Integração
+## 🎯 Complete Integration Flow
 
-### ETAPA 1: Preparar Ambiente (5 minutos)
+### STEP 1: Prepare Environment (5 minutes)
 
 ```bash
-# 1.1 - Configurar projeto GCP
-export PROJECT_ID="seu-projeto-gcp"
+# 1.1 - Configure GCP project
+export PROJECT_ID="your-gcp-project"
 export ZONE="us-central1-a"
 export REGION="us-central1"
 
@@ -24,23 +24,23 @@ gcloud config set project $PROJECT_ID
 gcloud config set compute/zone $ZONE
 gcloud config set compute/region $REGION
 
-# 1.2 - Habilitar APIs necessárias
+# 1.2 - Enable necessary APIs
 gcloud services enable compute.googleapis.com \
   cloudresourcemanager.googleapis.com \
   servicemanagement.googleapis.com \
   storage.googleapis.com
 
-# 1.3 - Criar credenciais
+# 1.3 - Create credentials
 gcloud auth application-default login
 
-# 1.4 - Verificar autenticação
+# 1.4 - Verify authentication
 gcloud auth application-default print-access-token
 ```
 
-### ETAPA 2: Configurar Variáveis (3 minutos)
+### STEP 2: Configure Variables (3 minutes)
 
 ```bash
-# 2.1 - Criar arquivo de variáveis do Packer
+# 2.1 - Create Packer variables file
 cat > packer/variables.pkrvars.hcl <<EOF
 project_id   = "$PROJECT_ID"
 zone         = "$ZONE"
@@ -48,7 +48,7 @@ image_name   = "nginx-immutable"
 image_family = "nginx-immutable-family"
 EOF
 
-# 2.2 - Criar arquivo de variáveis do Terraform
+# 2.2 - Create Terraform variables file
 cat > terraform/terraform.tfvars <<EOF
 project_id    = "$PROJECT_ID"
 region        = "$REGION"
@@ -59,43 +59,43 @@ image_family  = "nginx-immutable-family"
 environment   = "demo"
 EOF
 
-# 2.3 - Verificar configurações
-echo "=== Configuração Packer ==="
+# 2.3 - Verify configurations
+echo "=== Packer Configuration ==="
 cat packer/variables.pkrvars.hcl
 
-echo -e "\n=== Configuração Terraform ==="
+echo -e "\n=== Terraform Configuration ==="
 cat terraform/terraform.tfvars
 ```
 
-### ETAPA 3: Validar Configurações (2 minutos)
+### STEP 3: Validate Configurations (2 minutes)
 
 ```bash
-# 3.1 - Validar playbook Ansible
-echo "Validando Ansible..."
+# 3.1 - Validate Ansible playbook
+echo "Validating Ansible..."
 ansible-playbook ansible/nginx.yml --syntax-check
 
-# 3.2 - Validar template Packer
-echo "Validando Packer..."
+# 3.2 - Validate Packer template
+echo "Validating Packer..."
 packer validate -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
 
-# 3.3 - Validar configuração Terraform
-echo "Validando Terraform..."
+# 3.3 - Validate Terraform configuration
+echo "Validating Terraform..."
 cd terraform
 terraform init
 terraform validate
 cd ..
 
-echo "✅ Todas as validações passaram!"
+echo "✅ All validations passed!"
 ```
 
-### ETAPA 4: Criar Imagem com Packer (8-10 minutos)
+### STEP 4: Create Image with Packer (8-10 minutes)
 
 ```bash
-# 4.1 - Iniciar build do Packer
-echo "=== Iniciando build da imagem ==="
+# 4.1 - Start Packer build
+echo "=== Starting image build ==="
 packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
 
-# Saída esperada:
+# Expected output:
 # ==> googlecompute: Creating temporary RSA SSH key...
 # ==> googlecompute: Using image: ubuntu-2204-jammy-v20240319
 # ==> googlecompute: Creating instance...
@@ -105,17 +105,17 @@ packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
 # ==> googlecompute: Creating image nginx-immutable-20240512123456...
 # Build 'googlecompute.nginx' finished after 8 minutes 32 seconds.
 
-# 4.2 - Verificar imagem criada
-echo -e "\n=== Verificando imagem criada ==="
+# 4.2 - Verify created image
+echo -e "\n=== Verifying created image ==="
 gcloud compute images list --filter="family:nginx-immutable-family"
 
-# 4.3 - Ver detalhes da imagem
+# 4.3 - View image details
 IMAGE_NAME=$(gcloud compute images list \
   --filter="family:nginx-immutable-family" \
   --format="value(name)" \
   --limit=1)
 
-echo -e "\n=== Detalhes da imagem: $IMAGE_NAME ==="
+echo -e "\n=== Image details: $IMAGE_NAME ==="
 gcloud compute images describe $IMAGE_NAME --format=json | jq '{
   name: .name,
   family: .family,
@@ -125,25 +125,25 @@ gcloud compute images describe $IMAGE_NAME --format=json | jq '{
   creationTimestamp: .creationTimestamp
 }'
 
-# 4.4 - Ver manifest do Packer
+# 4.4 - View Packer manifest
 if [ -f "packer-manifest.json" ]; then
-  echo -e "\n=== Manifest do Packer ==="
+  echo -e "\n=== Packer Manifest ==="
   cat packer-manifest.json | jq
 fi
 ```
 
-### ETAPA 5: Provisionar Infraestrutura com Terraform (5 minutos)
+### STEP 5: Provision Infrastructure with Terraform (5 minutes)
 
 ```bash
-# 5.1 - Inicializar Terraform (se ainda não fez)
+# 5.1 - Initialize Terraform (if not done yet)
 cd terraform
 terraform init
 
-# 5.2 - Ver plano de execução
-echo "=== Plano de Execução ==="
+# 5.2 - View execution plan
+echo "=== Execution Plan ==="
 terraform plan -out=tfplan
 
-# Saída esperada:
+# Expected output:
 # Terraform will perform the following actions:
 #   + google_compute_address.nginx_static_ip
 #   + google_compute_firewall.allow_http
@@ -151,15 +151,15 @@ terraform plan -out=tfplan
 #   + google_compute_instance.nginx_server
 # Plan: 4 to add, 0 to change, 0 to destroy.
 
-# 5.3 - Aplicar mudanças
-echo -e "\n=== Aplicando mudanças ==="
+# 5.3 - Apply changes
+echo -e "\n=== Applying changes ==="
 terraform apply tfplan
 
-# 5.4 - Ver outputs
-echo -e "\n=== Informações da Infraestrutura ==="
+# 5.4 - View outputs
+echo -e "\n=== Infrastructure Information ==="
 terraform output
 
-# Saída esperada:
+# Expected output:
 # external_ip = "34.xxx.xxx.xxx"
 # image_family = "nginx-immutable-family"
 # image_used = "nginx-immutable-20240512123456"
@@ -173,44 +173,44 @@ terraform output
 cd ..
 ```
 
-### ETAPA 6: Validar Deployment (2 minutos)
+### STEP 6: Validate Deployment (2 minutes)
 
 ```bash
-# 6.1 - Obter informações
+# 6.1 - Get information
 cd terraform
 NGINX_IP=$(terraform output -raw external_ip)
 NGINX_URL=$(terraform output -raw nginx_url)
 SSH_CMD=$(terraform output -raw ssh_command)
 cd ..
 
-# 6.2 - Testar HTTP
-echo "=== Testando HTTP ==="
+# 6.2 - Test HTTP
+echo "=== Testing HTTP ==="
 echo "URL: $NGINX_URL"
 curl -I $NGINX_IP
 
-# 6.3 - Obter conteúdo HTML
-echo -e "\n=== Conteúdo da Página ==="
+# 6.3 - Get HTML content
+echo -e "\n=== Page Content ==="
 curl $NGINX_IP
 
-# 6.4 - Testar SSH (opcional)
-echo -e "\n=== Comando SSH ==="
+# 6.4 - Test SSH (optional)
+echo -e "\n=== SSH Command ==="
 echo "$SSH_CMD"
 
-# 6.5 - Abrir no navegador (Linux)
+# 6.5 - Open in browser (Linux)
 if command -v xdg-open &> /dev/null; then
   xdg-open $NGINX_URL
 fi
 
-# 6.6 - Abrir no navegador (macOS)
+# 6.6 - Open in browser (macOS)
 if command -v open &> /dev/null; then
   open $NGINX_URL
 fi
 ```
 
-### ETAPA 7: Monitorar Recursos (opcional)
+### STEP 7: Monitor Resources (optional)
 
 ```bash
-# 7.1 - Status da instância
+# 7.1 - Instance status
 gcloud compute instances describe nginx-immutable-demo \
   --zone=us-central1-a \
   --format=json | jq '{
@@ -221,12 +221,12 @@ gcloud compute instances describe nginx-immutable-demo \
     externalIp: .networkInterfaces[0].accessConfigs[0].natIP
   }'
 
-# 7.2 - Logs de inicialização
+# 7.2 - Startup logs
 gcloud compute instances get-serial-port-output \
   nginx-immutable-demo \
   --zone=us-central1-a
 
-# 7.3 - Métricas de CPU/Memória
+# 7.3 - CPU/Memory metrics
 gcloud compute instances describe nginx-immutable-demo \
   --zone=us-central1-a \
   --format="table(
@@ -237,150 +237,150 @@ gcloud compute instances describe nginx-immutable-demo \
   )"
 ```
 
-## 🔄 Workflow de Atualização
+## 🔄 Update Workflow
 
-### Cenário: Atualizar versão do Nginx ou configuração
+### Scenario: Update Nginx version or configuration
 
 ```bash
-# 1. Modificar playbook Ansible
+# 1. Modify Ansible playbook
 nano ansible/nginx.yml
 
-# 2. Validar mudanças
+# 2. Validate changes
 ansible-playbook ansible/nginx.yml --syntax-check
 
-# 3. Criar nova imagem
+# 3. Create new image
 packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
 
-# 4. Ver novas imagens disponíveis
+# 4. View available new images
 gcloud compute images list --filter="family:nginx-immutable-family" \
   --format="table(name,family,creationTimestamp)"
 
-# 5. Recriar instância com nova imagem
+# 5. Recreate instance with new image
 cd terraform
 terraform apply -replace=google_compute_instance.nginx_server
 
-# 6. Validar nova versão
+# 6. Validate new version
 NGINX_IP=$(terraform output -raw external_ip)
 curl $NGINX_IP
 ```
 
-## 🎯 Workflow de Blue-Green Deployment
+## 🎯 Blue-Green Deployment Workflow
 
 ```bash
-# 1. Criar nova imagem (Green)
+# 1. Create new image (Green)
 packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
 
-# 2. Criar nova instância Green (sem destruir Blue)
+# 2. Create new Green instance (without destroying Blue)
 cd terraform
 terraform apply -var="instance_name=nginx-green"
 
-# 3. Testar Green
+# 3. Test Green
 GREEN_IP=$(terraform output -raw external_ip)
 curl http://$GREEN_IP
 
-# 4. Trocar tráfego (atualizar Load Balancer ou DNS)
-# ... (configuração de load balancer)
+# 4. Switch traffic (update Load Balancer or DNS)
+# ... (load balancer configuration)
 
-# 5. Monitorar por algum tempo
+# 5. Monitor for some time
 
-# 6. Destruir instância Blue
+# 6. Destroy Blue instance
 terraform destroy -target=google_compute_instance.nginx_blue
 ```
 
-## 🧹 Limpeza Completa
+## 🧹 Complete Cleanup
 
 ```bash
-# 1. Destruir infraestrutura Terraform
+# 1. Destroy Terraform infrastructure
 cd terraform
 terraform destroy -auto-approve
 cd ..
 
-# 2. Deletar todas as imagens (opcional)
-echo "Deletando imagens..."
+# 2. Delete all images (optional)
+echo "Deleting images..."
 gcloud compute images list \
   --filter="family:nginx-immutable-family" \
   --format="value(name)" | \
   xargs -I {} gcloud compute images delete {} --quiet
 
-# 3. Verificar limpeza
-echo -e "\n=== Verificando recursos restantes ==="
+# 3. Verify cleanup
+echo -e "\n=== Verifying remaining resources ==="
 gcloud compute instances list
 gcloud compute images list --filter="family:nginx-immutable-family"
 gcloud compute addresses list
 
-echo "✅ Limpeza completa!"
+echo "✅ Complete cleanup!"
 ```
 
-## 🐛 Debug e Troubleshooting
+## 🐛 Debug and Troubleshooting
 
-### Se o Packer Falhar
+### If Packer Fails
 
 ```bash
-# 1. Executar em modo debug
+# 1. Run in debug mode
 PACKER_LOG=1 packer build \
   -var-file=packer/variables.pkrvars.hcl \
   packer/gce-nginx.pkr.hcl
 
-# 2. Verificar logs
+# 2. Check logs
 cat packer.log
 
-# 3. Verificar conectividade SSH
+# 3. Verify SSH connectivity
 gcloud compute firewall-rules list
 
-# 4. Criar regra temporária se necessário
+# 4. Create temporary rule if needed
 gcloud compute firewall-rules create allow-packer-ssh \
   --allow tcp:22 \
   --source-ranges=0.0.0.0/0 \
   --target-tags=packer
 ```
 
-### Se o Terraform Falhar
+### If Terraform Fails
 
 ```bash
-# 1. Ver logs detalhados
+# 1. View detailed logs
 TF_LOG=DEBUG terraform apply
 
-# 2. Verificar state
+# 2. Verify state
 terraform show
 
-# 3. Listar recursos
+# 3. List resources
 terraform state list
 
 # 4. Refresh state
 terraform refresh
 
-# 5. Importar recurso existente (se necessário)
+# 5. Import existing resource (if needed)
 terraform import google_compute_instance.nginx_server \
   projects/$PROJECT_ID/zones/$ZONE/instances/nginx-immutable-demo
 ```
 
-### Se o Nginx Não Responder
+### If Nginx Doesn't Respond
 
 ```bash
-# 1. Verificar status da instância
+# 1. Verify instance status
 gcloud compute instances describe nginx-immutable-demo \
   --zone=us-central1-a \
   --format="value(status)"
 
-# 2. Ver logs de startup
+# 2. View startup logs
 gcloud compute instances get-serial-port-output \
   nginx-immutable-demo \
   --zone=us-central1-a | tail -50
 
-# 3. SSH na instância
+# 3. SSH to instance
 gcloud compute ssh nginx-immutable-demo --zone=us-central1-a
 
-# 4. Dentro da instância, verificar Nginx
+# 4. Inside instance, verify Nginx
 sudo systemctl status nginx
 sudo journalctl -u nginx -n 50
 sudo nginx -t
 curl localhost
 ```
 
-## 📊 Monitoramento de Custos
+## 📊 Cost Monitoring
 
 ```bash
-# Ver estimativa de custos
+# View cost estimate
 gcloud compute instances describe nginx-immutable-demo \
   --zone=us-central1-a \
   --format="table(
@@ -390,20 +390,20 @@ gcloud compute instances describe nginx-immutable-demo \
     networkInterfaces[0].accessConfigs[0].natIP
   )"
 
-# Calcular custos aproximados
-echo "Estimativa mensal (e2-micro):"
-echo "Instância: ~$7.00"
-echo "IP estático: ~$3.00"
-echo "Imagens: ~$0.10"
-echo "Total: ~$10.10/mês"
+# Calculate approximate costs
+echo "Monthly estimate (e2-micro):"
+echo "Instance: ~$7.00"
+echo "Static IP: ~$3.00"
+echo "Images: ~$0.10"
+echo "Total: ~$10.10/month"
 ```
 
-## 🎓 Próximas Integrações
+## 🎓 Next Integrations
 
-### Adicionar CI/CD
+### Add CI/CD
 
 ```yaml
-# .gitlab-ci.yml ou .github/workflows/deploy.yml
+# .gitlab-ci.yml or .github/workflows/deploy.yml
 stages:
   - validate
   - build
@@ -424,21 +424,21 @@ deploy:
     - terraform apply -auto-approve
 ```
 
-### Adicionar Secrets Management
+### Add Secrets Management
 
 ```bash
-# Usar Google Secret Manager
+# Use Google Secret Manager
 gcloud secrets create nginx-config --data-file=nginx.conf
 gcloud secrets versions access latest --secret=nginx-config
 ```
 
-### Adicionar Monitoring
+### Add Monitoring
 
 ```bash
-# Habilitar Cloud Monitoring
+# Enable Cloud Monitoring
 gcloud services enable monitoring.googleapis.com
 
-# Criar alerta
+# Create alert
 gcloud alpha monitoring policies create \
   --notification-channels=$CHANNEL_ID \
   --display-name="Nginx Down" \
@@ -449,16 +449,16 @@ gcloud alpha monitoring policies create \
 
 ---
 
-## ✅ Checklist de Integração
+## ✅ Integration Checklist
 
-- [ ] Ambiente GCP configurado
-- [ ] Variáveis criadas (Packer + Terraform)
-- [ ] Validações executadas (Ansible + Packer + Terraform)
-- [ ] Imagem criada com Packer
-- [ ] Infraestrutura provisionada com Terraform
-- [ ] Nginx acessível via HTTP
-- [ ] Documentação lida
-- [ ] Testes de atualização realizados
-- [ ] Processo de limpeza testado
+- [ ] GCP environment configured
+- [ ] Variables created (Packer + Terraform)
+- [ ] Validations executed (Ansible + Packer + Terraform)
+- [ ] Image created with Packer
+- [ ] Infrastructure provisioned with Terraform
+- [ ] Nginx accessible via HTTP
+- [ ] Documentation read
+- [ ] Update tests performed
+- [ ] Cleanup process tested
 
-**🎉 Parabéns! Você tem uma infraestrutura imutável completa funcionando!**
+**🎉 Congratulations! You have a complete functional immutable infrastructure!**

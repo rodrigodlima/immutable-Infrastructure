@@ -1,168 +1,168 @@
-# 🔧 Comandos Úteis - Referência Rápida
+# 🔧 Useful Commands - Quick Reference
 
 ## 📦 Packer
 
-### Build e Validação
+### Build and Validation
 ```bash
-# Validar template
+# Validate template
 packer validate -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
 
-# Build da imagem
+# Build image
 packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
 
-# Build em modo debug (mantém VM em caso de erro)
+# Build in debug mode (keeps VM on error)
 packer build -debug -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
 
-# Build com output verboso
+# Build with verbose output
 PACKER_LOG=1 packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
 
-# Ver manifest gerado
+# View generated manifest
 cat packer-manifest.json | jq
 ```
 
-### Gerenciar Imagens
+### Manage Images
 ```bash
-# Listar imagens da família
+# List images from family
 gcloud compute images list --filter="family:nginx-immutable-family"
 
-# Ver detalhes da imagem mais recente
+# View details of latest image
 gcloud compute images describe-from-family nginx-immutable-family
 
-# Ver labels de uma imagem
+# View image labels
 gcloud compute images describe IMAGE_NAME --format="value(labels)"
 
-# Deletar imagem específica
+# Delete specific image
 gcloud compute images delete IMAGE_NAME
 
-# Deletar todas as imagens da família
+# Delete all images from family
 gcloud compute images list --filter="family:nginx-immutable-family" --format="value(name)" | \
   xargs -I {} gcloud compute images delete {} --quiet
 ```
 
 ## 🏗️ Terraform
 
-### Inicialização e Validação
+### Initialization and Validation
 ```bash
 cd terraform
 
-# Inicializar (primeira vez)
+# Initialize (first time)
 terraform init
 
-# Atualizar providers
+# Update providers
 terraform init -upgrade
 
-# Validar configuração
+# Validate configuration
 terraform validate
 
-# Formatar código
+# Format code
 terraform fmt -recursive
 ```
 
-### Plan e Apply
+### Plan and Apply
 ```bash
-# Ver plano de execução
+# View execution plan
 terraform plan
 
-# Salvar plano em arquivo
+# Save plan to file
 terraform plan -out=tfplan
 
-# Aplicar mudanças
+# Apply changes
 terraform apply
 
-# Aplicar plano salvo
+# Apply saved plan
 terraform apply tfplan
 
-# Aplicar sem confirmação (use com cuidado!)
+# Apply without confirmation (use with caution!)
 terraform apply -auto-approve
 
-# Aplicar apenas recurso específico
+# Apply only specific resource
 terraform apply -target=google_compute_instance.nginx_server
 ```
 
-### Outputs e State
+### Outputs and State
 ```bash
-# Ver todos os outputs
+# View all outputs
 terraform output
 
-# Ver output específico (raw)
+# View specific output (raw)
 terraform output -raw nginx_url
 
-# Ver estado atual
+# View current state
 terraform show
 
-# Listar recursos no state
+# List resources in state
 terraform state list
 
-# Ver detalhes de recurso específico
+# View details of specific resource
 terraform state show google_compute_instance.nginx_server
 
-# Refresh do state (sincronizar com realidade)
+# Refresh state (sync with reality)
 terraform refresh
 ```
 
-### Destroy e Recreate
+### Destroy and Recreate
 ```bash
-# Destruir tudo
+# Destroy everything
 terraform destroy
 
-# Destruir sem confirmação
+# Destroy without confirmation
 terraform destroy -auto-approve
 
-# Destruir recurso específico
+# Destroy specific resource
 terraform destroy -target=google_compute_instance.nginx_server
 
-# Recriar recurso (taint + apply)
+# Recreate resource (taint + apply)
 terraform apply -replace=google_compute_instance.nginx_server
 
-# Forçar recriação na próxima aplicação
+# Force recreation on next apply
 terraform taint google_compute_instance.nginx_server
 terraform apply
 ```
 
-### Workspaces (Ambientes)
+### Workspaces (Environments)
 ```bash
-# Listar workspaces
+# List workspaces
 terraform workspace list
 
-# Criar workspace
+# Create workspace
 terraform workspace new staging
 
-# Trocar workspace
+# Switch workspace
 terraform workspace select production
 
-# Deletar workspace
+# Delete workspace
 terraform workspace delete staging
 ```
 
 ## 🎭 Ansible
 
-### Validação e Teste
+### Validation and Testing
 ```bash
-# Verificar sintaxe do playbook
+# Check playbook syntax
 ansible-playbook ansible/nginx.yml --syntax-check
 
-# Dry-run (não executa, apenas simula)
+# Dry-run (doesn't execute, only simulates)
 ansible-playbook ansible/nginx.yml --check
 
-# Listar tasks do playbook
+# List playbook tasks
 ansible-playbook ansible/nginx.yml --list-tasks
 
-# Executar apenas tasks específicas
+# Execute only specific tasks
 ansible-playbook ansible/nginx.yml --tags "install"
 
-# Pular tasks específicas
+# Skip specific tasks
 ansible-playbook ansible/nginx.yml --skip-tags "config"
 ```
 
-### Execução Local (Teste)
+### Local Execution (Testing)
 ```bash
-# Executar localmente
+# Execute locally
 ansible-playbook ansible/nginx.yml -i localhost, --connection=local
 
-# Com sudo
+# With sudo
 ansible-playbook ansible/nginx.yml -i localhost, --connection=local --become
 
-# Modo verbose
+# Verbose mode
 ansible-playbook ansible/nginx.yml -v
 ansible-playbook ansible/nginx.yml -vv
 ansible-playbook ansible/nginx.yml -vvv
@@ -170,93 +170,93 @@ ansible-playbook ansible/nginx.yml -vvv
 
 ## ☁️ GCP / gcloud
 
-### Configuração
+### Configuration
 ```bash
-# Listar projetos
+# List projects
 gcloud projects list
 
-# Configurar projeto padrão
+# Set default project
 gcloud config set project PROJECT_ID
 
-# Ver configuração atual
+# View current configuration
 gcloud config list
 
-# Autenticar
+# Authenticate
 gcloud auth login
 gcloud auth application-default login
 
-# Listar contas autenticadas
+# List authenticated accounts
 gcloud auth list
 ```
 
 ### Compute Engine
 ```bash
-# Listar instâncias
+# List instances
 gcloud compute instances list
 
-# Ver detalhes da instância
+# View instance details
 gcloud compute instances describe nginx-immutable-demo --zone=us-central1-a
 
-# SSH na instância
+# SSH into instance
 gcloud compute ssh nginx-immutable-demo --zone=us-central1-a
 
-# Ligar/desligar instância
+# Start/stop instance
 gcloud compute instances start nginx-immutable-demo --zone=us-central1-a
 gcloud compute instances stop nginx-immutable-demo --zone=us-central1-a
 
-# Deletar instância
+# Delete instance
 gcloud compute instances delete nginx-immutable-demo --zone=us-central1-a
 
-# Ver logs serial da instância
+# View instance serial logs
 gcloud compute instances get-serial-port-output nginx-immutable-demo --zone=us-central1-a
 ```
 
 ### Firewall
 ```bash
-# Listar regras de firewall
+# List firewall rules
 gcloud compute firewall-rules list
 
-# Ver detalhes de regra
+# View rule details
 gcloud compute firewall-rules describe allow-http-nginx-demo
 
-# Criar regra
+# Create rule
 gcloud compute firewall-rules create RULE_NAME \
   --allow tcp:80 \
   --source-ranges=0.0.0.0/0 \
   --target-tags=nginx-server
 
-# Deletar regra
+# Delete rule
 gcloud compute firewall-rules delete RULE_NAME
 ```
 
-### IPs e Networking
+### IPs and Networking
 ```bash
-# Listar IPs estáticos
+# List static IPs
 gcloud compute addresses list
 
-# Criar IP estático
+# Create static IP
 gcloud compute addresses create IP_NAME --region=us-central1
 
-# Deletar IP estático
+# Delete static IP
 gcloud compute addresses delete IP_NAME --region=us-central1
 
-# Ver informações de rede
+# View network information
 gcloud compute networks list
 gcloud compute networks describe default
 ```
 
-### Quotas e Limites
+### Quotas and Limits
 ```bash
-# Ver quotas do projeto
+# View project quotas
 gcloud compute project-info describe --project=PROJECT_ID
 
-# Ver quotas de região específica
+# View quotas for specific region
 gcloud compute regions describe us-central1
 ```
 
-## 🔍 Debugging e Monitoramento
+## 🔍 Debugging and Monitoring
 
-### Logs da Instância
+### Instance Logs
 ```bash
 # Via gcloud
 gcloud compute instances get-serial-port-output nginx-immutable-demo --zone=us-central1-a
@@ -268,109 +268,109 @@ sudo tail -f /var/log/nginx/access.log
 sudo tail -f /var/log/nginx/error.log
 ```
 
-### Teste de Conectividade
+### Connectivity Testing
 ```bash
-# Obter IP da instância
+# Get instance IP
 NGINX_IP=$(cd terraform && terraform output -raw external_ip)
 
-# Testar HTTP
+# Test HTTP
 curl -v http://$NGINX_IP
 curl -I http://$NGINX_IP
 
-# Testar porta
+# Test port
 nc -zv $NGINX_IP 80
 
-# Testar DNS
+# Test DNS
 nslookup $NGINX_IP
 dig $NGINX_IP
 ```
 
 ### Performance
 ```bash
-# Testar latência
+# Test latency
 ping $NGINX_IP
 
-# Benchmark simples
+# Simple benchmark
 ab -n 1000 -c 10 http://$NGINX_IP/
 
-# Requisições concorrentes
+# Concurrent requests
 siege -c 100 -t 1M http://$NGINX_IP/
 ```
 
-## 🛠️ Manutenção
+## 🛠️ Maintenance
 
-### Atualizar Stack Completa
+### Update Complete Stack
 ```bash
-# 1. Modificar playbook Ansible
+# 1. Modify Ansible playbook
 nano ansible/nginx.yml
 
-# 2. Validar mudanças
+# 2. Validate changes
 ansible-playbook ansible/nginx.yml --syntax-check
 
-# 3. Criar nova imagem
+# 3. Create new image
 packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
 
-# 4. Recriar instância
+# 4. Recreate instance
 cd terraform
 terraform apply -replace=google_compute_instance.nginx_server
 ```
 
 ### Rollback
 ```bash
-# 1. Listar imagens antigas
+# 1. List old images
 gcloud compute images list --filter="family:nginx-immutable-family"
 
-# 2. No Terraform, modificar para usar imagem específica
-# Editar main.tf para apontar para imagem antiga
+# 2. In Terraform, modify to use specific image
+# Edit main.tf to point to old image
 
-# 3. Aplicar
+# 3. Apply
 terraform apply -replace=google_compute_instance.nginx_server
 ```
 
 ### Backup
 ```bash
-# Backup do state do Terraform
+# Backup Terraform state
 cd terraform
 cp terraform.tfstate terraform.tfstate.backup
 
-# Criar snapshot do disco da instância
+# Create instance disk snapshot
 gcloud compute disks snapshot nginx-immutable-demo \
   --zone=us-central1-a \
   --snapshot-names=nginx-backup-$(date +%Y%m%d)
 ```
 
-## 📊 Monitoramento de Custos
+## 📊 Cost Monitoring
 
 ```bash
-# Ver estimativa de custos (requer configuração de billing)
+# View cost estimate (requires billing configuration)
 gcloud beta billing projects describe PROJECT_ID
 
-# Listar recursos que geram custo
+# List resources that generate costs
 gcloud compute instances list --format="table(name,zone,machineType,status)"
 gcloud compute addresses list --format="table(name,region,status)"
 gcloud compute images list --format="table(name,diskSizeGb)"
 ```
 
-## 🔐 Segurança
+## 🔐 Security
 
 ```bash
-# Verificar regras de firewall abertas
+# Check open firewall rules
 gcloud compute firewall-rules list --filter="sourceRanges:0.0.0.0/0"
 
-# Verificar instâncias sem tags
+# Check instances without tags
 gcloud compute instances list --filter="-tags:*"
 
-# Ver service accounts usadas
+# View service accounts in use
 gcloud iam service-accounts list
 
-# Auditar permissões do projeto
+# Audit project permissions
 gcloud projects get-iam-policy PROJECT_ID
 ```
 
-## 💡 Dicas
+## 💡 Tips
 
-### Aliases Úteis
-Adicione ao seu `.bashrc` ou `.zshrc`:
+### Useful Aliases
+Add to your `.bashrc` or `.zshrc`:
 
 ```bash
 # Terraform
@@ -392,13 +392,13 @@ alias gcil='gcloud compute instances list'
 alias gcim='gcloud compute images'
 alias gciml='gcloud compute images list'
 
-# Projeto
+# Project
 alias deploy-full='./deploy.sh --full'
 alias deploy-packer='./deploy.sh --packer'
 alias deploy-tf='./deploy.sh --terraform'
 ```
 
-### Variáveis de Ambiente Úteis
+### Useful Environment Variables
 ```bash
 # Terraform
 export TF_LOG=DEBUG
@@ -409,10 +409,10 @@ export PACKER_LOG=1
 export PACKER_LOG_PATH=./packer.log
 
 # GCloud
-export CLOUDSDK_CORE_PROJECT=seu-projeto-gcp
+export CLOUDSDK_CORE_PROJECT=your-gcp-project
 export CLOUDSDK_COMPUTE_ZONE=us-central1-a
 ```
 
 ---
 
-**Dica:** Adicione este arquivo aos favoritos para referência rápida!
+**Tip:** Bookmark this file for quick reference!

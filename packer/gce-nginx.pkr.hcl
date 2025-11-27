@@ -13,24 +13,24 @@ packer {
 
 variable "project_id" {
   type        = string
-  description = "ID do projeto GCP"
+  description = "GCP project ID"
 }
 
 variable "zone" {
   type        = string
-  description = "Zona do GCP"
+  description = "GCP zone"
   default     = "us-central1-a"
 }
 
 variable "image_name" {
   type        = string
-  description = "Nome da imagem a ser criada"
+  description = "Name of the image to be created"
   default     = "nginx-immutable"
 }
 
 variable "image_family" {
   type        = string
-  description = "Família da imagem"
+  description = "Image family"
   default     = "nginx-immutable-family"
 }
 
@@ -47,8 +47,8 @@ source "googlecompute" "nginx" {
   image_family        = var.image_family
   ssh_username        = "packer"
   machine_type        = "e2-medium"
-  
-  # Tags para a imagem
+
+  # Image tags
   image_labels = {
     environment = "demo"
     managed_by  = "packer"
@@ -57,10 +57,10 @@ source "googlecompute" "nginx" {
     created     = local.timestamp
   }
 
-  # Descrição da imagem
-  image_description = "Imagem Ubuntu 22.04 com Nginx instalado via Ansible - Infraestrutura Imutável"
+  # Image description
+  image_description = "Ubuntu 22.04 image with Nginx installed via Ansible - Immutable Infrastructure"
 
-  # Tags para organização
+  # Tags for organization
   tags = ["packer", "nginx", "immutable-infrastructure"]
 }
 
@@ -69,42 +69,42 @@ build {
   
   sources = ["source.googlecompute.nginx"]
 
-  # Aguardar o cloud-init terminar
+  # Wait for cloud-init to finish
   provisioner "shell" {
     inline = [
-      "echo 'Aguardando cloud-init...'",
+      "echo 'Waiting for cloud-init...'",
       "sudo cloud-init status --wait",
-      "echo 'Cloud-init concluído!'",
+      "echo 'Cloud-init completed!'",
       "sudo apt-get update"
     ]
   }
 
-  # Executar o playbook Ansible
+  # Execute Ansible playbook
   provisioner "ansible" {
     playbook_file = "./ansible/nginx.yml"
     user          = "packer"
     use_proxy     = false
-    
-    # Variáveis extras para o Ansible
+
+    # Extra variables for Ansible
     extra_arguments = [
       "--extra-vars",
       "ansible_python_interpreter=/usr/bin/python3"
     ]
   }
 
-  # Limpeza e otimização da imagem
+  # Cleanup and image optimization
   provisioner "shell" {
     inline = [
-      "echo 'Limpando cache e arquivos temporários...'",
+      "echo 'Cleaning cache and temporary files...'",
       "sudo apt-get clean",
       "sudo apt-get autoremove -y",
       "sudo rm -rf /tmp/*",
       "sudo rm -rf /var/tmp/*",
-      "echo 'Imagem otimizada e pronta!'"
+      "echo 'Image optimized and ready!'"
     ]
   }
 
-  # Post-processor para exibir informações da imagem
+  # Post-processor to display image information
   post-processor "manifest" {
     output     = "packer-manifest.json"
     strip_path = true
