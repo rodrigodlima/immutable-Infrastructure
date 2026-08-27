@@ -81,7 +81,7 @@ build {
 
   # Execute Ansible playbook
   provisioner "ansible" {
-    playbook_file = "./ansible/nginx.yml"
+    playbook_file = "${path.root}/../../../shared/ansible/nginx.yml"
     user          = "packer"
     use_proxy     = false
 
@@ -106,7 +106,7 @@ build {
 
   # Post-processor to display image information
   post-processor "manifest" {
-    output     = "packer-manifest.json"
+    output     = "${path.root}/../packer-manifest.json"
     strip_path = true
   }
 }

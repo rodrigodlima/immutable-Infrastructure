@@ -18,31 +18,31 @@ gcloud auth application-default login
 ### 2. Configure Variables
 ```bash
 # Packer
-cp packer/variables.pkrvars.hcl.example packer/variables.pkrvars.hcl
-nano packer/variables.pkrvars.hcl  # Add your project_id
+cp clouds/gcp/packer/variables.pkrvars.hcl.example clouds/gcp/packer/variables.pkrvars.hcl
+nano clouds/gcp/packer/variables.pkrvars.hcl  # Add your project_id
 
 # Terraform
-cp terraform/terraform.tfvars.example terraform/terraform.tfvars
-nano terraform/terraform.tfvars  # Add your project_id
+cp clouds/gcp/terraform/terraform.tfvars.example clouds/gcp/terraform/terraform.tfvars
+nano clouds/gcp/terraform/terraform.tfvars  # Add your project_id
 ```
 
 ### 3. Execute Automated Deploy
 ```bash
 # Option 1: Interactive script
-./deploy.sh
+./bin/deploy.sh
 
 # Option 2: Complete direct deploy
-./deploy.sh --full
+./bin/deploy.sh --full
 
 # Option 3: Step-by-step manual
-./deploy.sh --packer    # Create image
-./deploy.sh --terraform # Deploy infrastructure
+./bin/deploy.sh --packer    # Create image
+./bin/deploy.sh --terraform # Deploy infrastructure
 ```
 
 ### 4. Access Application
 ```bash
 # Get URL
-cd terraform
+cd clouds/gcp/terraform
 terraform output nginx_url
 
 # Test
@@ -51,11 +51,11 @@ curl $(terraform output -raw nginx_url)
 
 ## Cleanup
 ```bash
-./deploy.sh --destroy
+./bin/deploy.sh --destroy
 ```
 
 ---
 
 **Estimated total time:** 10-15 minutes (including image build)
 
-For complete documentation, see [README.md](README.md)
+For complete documentation, see [README.md](../README.md)

@@ -12,12 +12,12 @@ gcloud services enable compute.googleapis.com
 gcloud auth application-default login
 
 # Configure variables
-cp packer/variables.pkrvars.hcl.example packer/variables.pkrvars.hcl
-cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+cp clouds/gcp/packer/variables.pkrvars.hcl.example clouds/gcp/packer/variables.pkrvars.hcl
+cp clouds/gcp/terraform/terraform.tfvars.example clouds/gcp/terraform/terraform.tfvars
 
 # Edit with your project_id (Linux/Mac)
-sed -i "s/your-gcp-project/$PROJECT_ID/g" packer/variables.pkrvars.hcl
-sed -i "s/your-gcp-project/$PROJECT_ID/g" terraform/terraform.tfvars
+sed -i "s/your-gcp-project/$PROJECT_ID/g" clouds/gcp/packer/variables.pkrvars.hcl
+sed -i "s/your-gcp-project/$PROJECT_ID/g" clouds/gcp/terraform/terraform.tfvars
 ```
 
 ---
@@ -26,14 +26,14 @@ sed -i "s/your-gcp-project/$PROJECT_ID/g" terraform/terraform.tfvars
 
 ```bash
 # Create V1 image
-packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
+packer build -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
 
 # Note V1 image name
 export IMAGE_V1=$(gcloud compute images list --filter="family:nginx-immutable-family" --format="value(name)" --sort-by=creationTimestamp --limit=1)
 echo "V1: $IMAGE_V1"
 
 # Deploy infrastructure
-cd terraform
+cd clouds/gcp/terraform
 terraform init
 terraform apply -auto-approve
 
@@ -54,10 +54,10 @@ xdg-open $NGINX_URL  # or 'open' on macOS
 
 ```bash
 # Backup V1
-cp ansible/nginx.yml ansible/nginx.yml.v1
+cp shared/ansible/nginx.yml shared/ansible/nginx.yml.v1
 
 # Create V2 content (copy entire block below)
-cat > ansible/nginx.yml << 'EOF'
+cat > shared/ansible/nginx.yml << 'EOF'
 ---
 - name: Install and Configure Nginx - VERSION 2
   hosts: all
@@ -142,7 +142,7 @@ cat > ansible/nginx.yml << 'EOF'
 EOF
 
 # Create V2 image
-packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
+packer build -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
 
 # Note V2 image name
 export IMAGE_V2=$(gcloud compute images list --filter="family:nginx-immutable-family" --format="value(name)" --sort-by=~creationTimestamp --limit=1)
@@ -152,7 +152,7 @@ echo "V2: $IMAGE_V2"
 gcloud compute images list --filter="family:nginx-immutable-family" --format="table(name,creationTimestamp)"
 
 # Deploy V2
-cd terraform
+cd clouds/gcp/terraform
 terraform apply -replace=google_compute_instance.nginx_server -auto-approve
 cd ..
 
@@ -172,7 +172,7 @@ echo "V1 Image: $IMAGE_V1"
 echo "V2 Image: $IMAGE_V2"
 
 # Rollback via Terraform
-cd terraform
+cd clouds/gcp/terraform
 
 # Backup main.tf
 cp main.tf main.tf.backup
@@ -194,7 +194,7 @@ curl $NGINX_IP
 xdg-open $NGINX_URL
 
 # Restore ansible to V1
-mv ansible/nginx.yml.v1 ansible/nginx.yml
+mv shared/ansible/nginx.yml.v1 shared/ansible/nginx.yml
 ```
 
 ---
@@ -203,7 +203,7 @@ mv ansible/nginx.yml.v1 ansible/nginx.yml
 
 ```bash
 # Destroy infrastructure
-cd terraform
+cd clouds/gcp/terraform
 terraform destroy -auto-approve
 cd ..
 
@@ -223,7 +223,7 @@ gcloud compute images list --filter="family:nginx-immutable-family" --format="va
 gcloud compute instances describe nginx-immutable-demo --zone=us-central1-a --format="value(status)"
 
 # View instance IP
-cd terraform && terraform output external_ip && cd ..
+cd clouds/gcp/terraform && terraform output external_ip && cd ..
 
 # Test HTTP
 curl -I $NGINX_IP
@@ -235,7 +235,7 @@ curl $NGINX_IP
 gcloud compute images list --filter="family:nginx-immutable-family" --format="table(name,family,creationTimestamp,diskSizeGb)"
 
 # View which image is in use
-cd terraform && terraform show | grep "image.*nginx" && cd ..
+cd clouds/gcp/terraform && terraform show | grep "image.*nginx" && cd ..
 ```
 
 ---
@@ -248,12 +248,12 @@ cd terraform && terraform show | grep "image.*nginx" && cd ..
 # Run V1 before presentation (saves 10 min)
 export PROJECT_ID="your-gcp-project"
 # ... configure variables ...
-packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
-cd terraform && terraform init && terraform apply -auto-approve && cd ..
+packer build -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
+cd clouds/gcp/terraform && terraform init && terraform apply -auto-approve && cd ..
 
 # Note variable names
 export IMAGE_V1=$(gcloud compute images list --filter="family:nginx-immutable-family" --format="value(name)" --limit=1)
-export NGINX_URL=$(cd terraform && terraform output -raw nginx_url && cd ..)
+export NGINX_URL=$(cd clouds/gcp/terraform && terraform output -raw nginx_url && cd ..)
 ```
 
 ### During the Demo
@@ -265,18 +265,18 @@ export NGINX_URL=$(cd terraform && terraform output -raw nginx_url && cd ..)
 # 3. Slides (optional)
 
 # Have aliases ready:
-alias v1-to-v2="packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl && cd terraform && terraform apply -replace=google_compute_instance.nginx_server -auto-approve && cd .."
-alias rollback="cd terraform && terraform apply -replace=google_compute_instance.nginx_server && cd .."
+alias v1-to-v2="packer build -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl && cd clouds/gcp/terraform && terraform apply -replace=google_compute_instance.nginx_server -auto-approve && cd .."
+alias rollback="cd clouds/gcp/terraform && terraform apply -replace=google_compute_instance.nginx_server && cd .."
 ```
 
 ### Quick Troubleshooting
 
 ```bash
 # If Packer fails
-PACKER_LOG=1 packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
+PACKER_LOG=1 packer build -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
 
 # If Terraform fails
-cd terraform && terraform show && terraform refresh
+cd clouds/gcp/terraform && terraform show && terraform refresh
 
 # If Nginx doesn't respond
 gcloud compute ssh nginx-immutable-demo --zone=us-central1-a -- sudo systemctl status nginx
@@ -318,16 +318,16 @@ While waiting for Packer builds (8 min):
 
 ```bash
 # Complete V1 deploy
-packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl && cd terraform && terraform init && terraform apply -auto-approve && cd ..
+packer build -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl && cd clouds/gcp/terraform && terraform init && terraform apply -auto-approve && cd ..
 
 # View and open V1
-export NGINX_URL=$(cd terraform && terraform output -raw nginx_url && cd ..) && echo $NGINX_URL && xdg-open $NGINX_URL
+export NGINX_URL=$(cd clouds/gcp/terraform && terraform output -raw nginx_url && cd ..) && echo $NGINX_URL && xdg-open $NGINX_URL
 
-# Build and deploy V2 (after modifying ansible/nginx.yml)
-packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl && cd terraform && terraform apply -replace=google_compute_instance.nginx_server -auto-approve && cd ..
+# Build and deploy V2 (after modifying shared/ansible/nginx.yml)
+packer build -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl && cd clouds/gcp/terraform && terraform apply -replace=google_compute_instance.nginx_server -auto-approve && cd ..
 
 # Complete cleanup
-cd terraform && terraform destroy -auto-approve && cd .. && gcloud compute images list --filter="family:nginx-immutable-family" --format="value(name)" | xargs -I {} gcloud compute images delete {} --quiet
+cd clouds/gcp/terraform && terraform destroy -auto-approve && cd .. && gcloud compute images list --filter="family:nginx-immutable-family" --format="value(name)" | xargs -I {} gcloud compute images delete {} --quiet
 ```
 
 ---

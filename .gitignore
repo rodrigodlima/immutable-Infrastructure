@@ -33,14 +33,15 @@ override.tf.json
 terraform.rc
 
 # Packer files
-packer-manifest.json
+**/packer-manifest.json
 *.pkrvars.hcl
 
 # Ansible files
 *.retry
+*.yml.v1
 
-# Scripts directory (if contains sensitive or generated content)
-scripts/
+# Scripts locais/temporários gerados (os scripts versionados vivem em bin/ e clouds/*/scripts/)
+scratch/
 
 # Keep only example files - negate the ignore for .example files
 !*.example

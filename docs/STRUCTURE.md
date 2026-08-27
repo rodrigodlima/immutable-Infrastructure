@@ -9,28 +9,75 @@ This project demonstrates a complete implementation of **Immutable Infrastructur
 
 ## 📂 Project Structure
 
+The repository is organised **by cloud provider**. Everything that is not
+provider-specific lives in `shared/`, and a single driver (`bin/deploy.sh`)
+runs the same workflow against any of them.
+
 ```
-infraestrutura-imutavel-gcp/
+immutable-infrastructure/
 │
-├── 📄 README.md                 # Complete and detailed documentation
-├── 📄 QUICKSTART.md             # Quick guide (5 minutes)
-├── 📄 COMMANDS.md               # Quick command reference
-├── 📄 .gitignore                # Configured gitignore file
-├── 🔧 deploy.sh                 # Complete automation script
+├── 📄 README.md                        # Complete and detailed documentation
+├── 📄 Makefile                         # Shortcuts: make full CLOUD=gcp
+├── 📄 .gitignore
 │
-├── 📁 ansible/
-│   └── nginx.yml                # Ansible playbook to install Nginx
+├── 📁 bin/                             # Cloud-agnostic entrypoints
+│   ├── 🔧 deploy.sh                    # Driver: --cloud gcp|aws|azure
+│   └── 🔧 run-demo.sh                  # End-to-end demo (GCP)
 │
-├── 📁 packer/
-│   ├── gce-nginx.pkr.hcl       # Packer template to create GCE image
-│   └── variables.pkrvars.hcl.example
+├── 📁 shared/                          # Reused by every cloud
+│   └── ansible/
+│       └── nginx.yml                   # Ansible playbook to install Nginx
 │
-└── 📁 terraform/
-    ├── main.tf                  # Main Terraform resources
-    ├── variables.tf             # Variable definitions
-    ├── outputs.tf               # Terraform outputs
-    └── terraform.tfvars.example # Configuration example
+├── 📁 clouds/
+│   ├── 📁 gcp/                         # ✅ Implemented
+│   │   ├── packer/
+│   │   │   ├── gce-nginx.pkr.hcl       # Packer template (GCE image)
+│   │   │   └── variables.pkrvars.hcl.example
+│   │   ├── terraform/
+│   │   │   ├── main.tf                 # Main Terraform resources
+│   │   │   ├── variables.tf            # Variable definitions
+│   │   │   ├── outputs.tf              # Terraform outputs
+│   │   │   └── terraform.tfvars.example
+│   │   ├── scripts/
+│   │   │   └── update-instance.sh      # Blue-Green replacement
+│   │   └── README.md
+│   ├── 📁 aws/                         # 🚧 Planned (AMI + EC2)
+│   │   └── README.md                   # Target design + contract to fulfil
+│   └── 📁 azure/                       # 🚧 Planned (Gallery + Linux VM)
+│       └── README.md                   # Target design + contract to fulfil
+│
+└── 📁 docs/
+    ├── INDEX.md                        # Documentation index
+    ├── QUICKSTART.md                   # Quick guide (5 minutes)
+    ├── COMMANDS.md                     # Quick command reference
+    ├── INTEGRATION.md                  # How Packer/Ansible/Terraform fit together
+    ├── STRUCTURE.md                    # This file
+    └── demo/
+        ├── DEMO.md
+        ├── DEMO-CHEATSHEET.md
+        └── README-DEMO.md
 ```
+
+### Why this layout
+
+- **`clouds/<provider>/` is self-contained** — Packer template, Terraform config and
+  helper scripts for one provider never leak into another. Adding a cloud means adding
+  a directory, not editing existing ones.
+- **`shared/ansible/` is the single source of truth for image content** — the same
+  playbook is baked into the GCP image, the AWS AMI and the Azure gallery version, so
+  the three clouds run byte-identical configuration.
+- **`bin/deploy.sh` is provider-agnostic** — it resolves paths from
+  `clouds/$CLOUD/`, so `--cloud aws` works the moment `clouds/aws/` is populated.
+
+### Adding a new cloud
+
+1. Create `clouds/<name>/{packer,terraform,scripts}/`.
+2. Write one `*.pkr.hcl` whose `ansible` provisioner points at
+   `${path.root}/../../../shared/ansible/nginx.yml`.
+3. Write the Terraform config, naming the compute resource `nginx_server` and
+   exposing `nginx_url` and `ssh_command` outputs.
+4. Add the provider's CLI, credential check and instance resource address to the
+   `case "$CLOUD"` blocks in `bin/deploy.sh`.
 
 ## 🚀 What Does This Project Do?
 
@@ -100,29 +147,29 @@ gcloud auth application-default login
 ### 2. Configure Variables (1 minute)
 ```bash
 # Packer
-cp packer/variables.pkrvars.hcl.example packer/variables.pkrvars.hcl
-nano packer/variables.pkrvars.hcl  # Edit project_id
+cp clouds/gcp/packer/variables.pkrvars.hcl.example clouds/gcp/packer/variables.pkrvars.hcl
+nano clouds/gcp/packer/variables.pkrvars.hcl  # Edit project_id
 
 # Terraform
-cp terraform/terraform.tfvars.example terraform/terraform.tfvars
-nano terraform/terraform.tfvars     # Edit project_id
+cp clouds/gcp/terraform/terraform.tfvars.example clouds/gcp/terraform/terraform.tfvars
+nano clouds/gcp/terraform/terraform.tfvars     # Edit project_id
 ```
 
 ### 3. Execute Deploy (10-15 minutes)
 ```bash
 # Option 1: Automatic (recommended)
-chmod +x deploy.sh
-./deploy.sh --full
+chmod +x bin/deploy.sh
+./bin/deploy.sh --full
 
 # Option 2: Manual
-packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
-cd terraform && terraform init && terraform apply
+packer build -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
+cd clouds/gcp/terraform && terraform init && terraform apply
 ```
 
 ### 4. Access Application (immediate)
 ```bash
 # Get URL
-cd terraform
+cd clouds/gcp/terraform
 terraform output nginx_url
 
 # Test
@@ -163,30 +210,30 @@ open $(terraform output -raw nginx_url)       # macOS
 
 ## 🛠️ Main Features
 
-### Automation Script (`deploy.sh`)
+### Automation Script (`bin/deploy.sh`)
 ```bash
-./deploy.sh               # Interactive menu
-./deploy.sh --full        # Complete Build + Deploy
-./deploy.sh --packer      # Only create image
-./deploy.sh --terraform   # Only deploy
-./deploy.sh --destroy     # Destroy resources
-./deploy.sh --validate    # Validate configurations
+./bin/deploy.sh               # Interactive menu
+./bin/deploy.sh --full        # Complete Build + Deploy
+./bin/deploy.sh --packer      # Only create image
+./bin/deploy.sh --terraform   # Only deploy
+./bin/deploy.sh --destroy     # Destroy resources
+./bin/deploy.sh --validate    # Validate configurations
 ```
 
-### Ansible (`ansible/nginx.yml`)
+### Ansible (`shared/ansible/nginx.yml`)
 - Installs Nginx
 - Creates customized HTML page
 - Configures firewall
 - Validates installation
 
-### Packer (`packer/gce-nginx.pkr.hcl`)
+### Packer (`clouds/gcp/packer/gce-nginx.pkr.hcl`)
 - Uses Ubuntu 22.04 LTS image
 - Executes Ansible provisioner
 - Adds labels and tags
 - Optimizes image size
 - Generates JSON manifest
 
-### Terraform (`terraform/*.tf`)
+### Terraform (`clouds/gcp/terraform/*.tf`)
 - Fetches most recent image from family
 - Creates static IP
 - Configures firewall (HTTP/SSH)
@@ -195,7 +242,7 @@ open $(terraform output -raw nginx_url)       # macOS
 
 ## 📚 Documentation
 
-- **[README.md](README.md)** - Complete documentation (12+ pages)
+- **[README.md](../README.md)** - Complete documentation (12+ pages)
   - Immutable infrastructure concepts
   - Detailed architecture
   - Step-by-step instructions
@@ -208,7 +255,7 @@ open $(terraform output -raw nginx_url)       # macOS
   - Minimal configuration
   - Quick deploy
 
-- **[COMANDOS.md](COMANDOS.md)** - Quick reference
+- **[COMANDOS.md](COMMANDS.md)** - Quick reference
   - Packer commands
   - Terraform commands
   - Ansible commands
@@ -308,7 +355,7 @@ You now have:
 ✅ Comprehensive documentation
 ✅ Foundation for expansion
 
-**Next step:** Run `./deploy.sh` and see the magic happen! 🚀
+**Next step:** Run `./bin/deploy.sh` and see the magic happen! 🚀
 
 ---
 

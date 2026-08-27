@@ -5,19 +5,19 @@
 ### Build and Validation
 ```bash
 # Validate template
-packer validate -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
+packer validate -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
 
 # Build image
-packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
+packer build -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
 
 # Build in debug mode (keeps VM on error)
-packer build -debug -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
+packer build -debug -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
 
 # Build with verbose output
-PACKER_LOG=1 packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
+PACKER_LOG=1 packer build -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
 
 # View generated manifest
-cat packer-manifest.json | jq
+cat clouds/gcp/packer-manifest.json | jq
 ```
 
 ### Manage Images
@@ -43,7 +43,7 @@ gcloud compute images list --filter="family:nginx-immutable-family" --format="va
 
 ### Initialization and Validation
 ```bash
-cd terraform
+cd clouds/gcp/terraform
 
 # Initialize (first time)
 terraform init
@@ -139,33 +139,33 @@ terraform workspace delete staging
 ### Validation and Testing
 ```bash
 # Check playbook syntax
-ansible-playbook ansible/nginx.yml --syntax-check
+ansible-playbook shared/ansible/nginx.yml --syntax-check
 
 # Dry-run (doesn't execute, only simulates)
-ansible-playbook ansible/nginx.yml --check
+ansible-playbook shared/ansible/nginx.yml --check
 
 # List playbook tasks
-ansible-playbook ansible/nginx.yml --list-tasks
+ansible-playbook shared/ansible/nginx.yml --list-tasks
 
 # Execute only specific tasks
-ansible-playbook ansible/nginx.yml --tags "install"
+ansible-playbook shared/ansible/nginx.yml --tags "install"
 
 # Skip specific tasks
-ansible-playbook ansible/nginx.yml --skip-tags "config"
+ansible-playbook shared/ansible/nginx.yml --skip-tags "config"
 ```
 
 ### Local Execution (Testing)
 ```bash
 # Execute locally
-ansible-playbook ansible/nginx.yml -i localhost, --connection=local
+ansible-playbook shared/ansible/nginx.yml -i localhost, --connection=local
 
 # With sudo
-ansible-playbook ansible/nginx.yml -i localhost, --connection=local --become
+ansible-playbook shared/ansible/nginx.yml -i localhost, --connection=local --become
 
 # Verbose mode
-ansible-playbook ansible/nginx.yml -v
-ansible-playbook ansible/nginx.yml -vv
-ansible-playbook ansible/nginx.yml -vvv
+ansible-playbook shared/ansible/nginx.yml -v
+ansible-playbook shared/ansible/nginx.yml -vv
+ansible-playbook shared/ansible/nginx.yml -vvv
 ```
 
 ## ☁️ GCP / gcloud
@@ -271,7 +271,7 @@ sudo tail -f /var/log/nginx/error.log
 ### Connectivity Testing
 ```bash
 # Get instance IP
-NGINX_IP=$(cd terraform && terraform output -raw external_ip)
+NGINX_IP=$(cd clouds/gcp/terraform && terraform output -raw external_ip)
 
 # Test HTTP
 curl -v http://$NGINX_IP
@@ -302,16 +302,16 @@ siege -c 100 -t 1M http://$NGINX_IP/
 ### Update Complete Stack
 ```bash
 # 1. Modify Ansible playbook
-nano ansible/nginx.yml
+nano shared/ansible/nginx.yml
 
 # 2. Validate changes
-ansible-playbook ansible/nginx.yml --syntax-check
+ansible-playbook shared/ansible/nginx.yml --syntax-check
 
 # 3. Create new image
-packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
+packer build -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
 
 # 4. Recreate instance
-cd terraform
+cd clouds/gcp/terraform
 terraform apply -replace=google_compute_instance.nginx_server
 ```
 
@@ -330,7 +330,7 @@ terraform apply -replace=google_compute_instance.nginx_server
 ### Backup
 ```bash
 # Backup Terraform state
-cd terraform
+cd clouds/gcp/terraform
 cp terraform.tfstate terraform.tfstate.backup
 
 # Create instance disk snapshot
@@ -393,9 +393,9 @@ alias gcim='gcloud compute images'
 alias gciml='gcloud compute images list'
 
 # Project
-alias deploy-full='./deploy.sh --full'
-alias deploy-packer='./deploy.sh --packer'
-alias deploy-tf='./deploy.sh --terraform'
+alias deploy-full='./bin/deploy.sh --full'
+alias deploy-packer='./bin/deploy.sh --packer'
+alias deploy-tf='./bin/deploy.sh --terraform'
 ```
 
 ### Useful Environment Variables

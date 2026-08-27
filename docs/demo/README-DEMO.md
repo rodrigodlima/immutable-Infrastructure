@@ -11,7 +11,7 @@ This project includes complete documentation for your demonstration:
 ### 🎬 Demonstration Files
 - **DEMO.md** - Complete demonstration script (READ FIRST!)
 - **DEMO-CHEATSHEET.md** - Quick copy/paste commands
-- **run-demo.sh** - Automated script that executes entire demo
+- **bin/run-demo.sh** - Automated script that executes entire demo
 
 ### 📚 References
 - **COMANDOS.md** - Reference for all commands
@@ -29,13 +29,13 @@ This project includes complete documentation for your demonstration:
 export PROJECT_ID="your-gcp-project"
 
 # Configure variables
-cp packer/variables.pkrvars.hcl.example packer/variables.pkrvars.hcl
-cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+cp clouds/gcp/packer/variables.pkrvars.hcl.example clouds/gcp/packer/variables.pkrvars.hcl
+cp clouds/gcp/terraform/terraform.tfvars.example clouds/gcp/terraform/terraform.tfvars
 # Edit both files with your PROJECT_ID
 
 # Execute complete demo
-chmod +x run-demo.sh
-./run-demo.sh
+chmod +x bin/run-demo.sh
+./bin/run-demo.sh
 ```
 
 The script will:
@@ -156,12 +156,12 @@ export PROJECT_ID="your-gcp-project"
 gcloud config set project $PROJECT_ID
 
 # Create image and deploy
-packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
-cd terraform && terraform init && terraform apply -auto-approve && cd ..
+packer build -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
+cd clouds/gcp/terraform && terraform init && terraform apply -auto-approve && cd ..
 
 # Note variables
 export IMAGE_V1=$(gcloud compute images list --filter="family:nginx-immutable-family" --format="value(name)" --limit=1)
-export NGINX_URL=$(cd terraform && terraform output -raw nginx_url && cd ..)
+export NGINX_URL=$(cd clouds/gcp/terraform && terraform output -raw nginx_url && cd ..)
 
 echo "V1: $IMAGE_V1"
 echo "URL: $NGINX_URL"
@@ -180,7 +180,7 @@ echo "URL: $NGINX_URL"
 ### Packer Fails
 ```bash
 # View detailed logs
-PACKER_LOG=1 packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
+PACKER_LOG=1 packer build -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
 
 # Verify permissions
 gcloud auth application-default print-access-token
@@ -192,7 +192,7 @@ gcloud compute project-info describe --project=$PROJECT_ID
 ### Terraform Fails
 ```bash
 # Refresh state
-cd terraform && terraform refresh
+cd clouds/gcp/terraform && terraform refresh
 
 # View state
 terraform show
@@ -257,14 +257,14 @@ A: Add: Auto Scaling, Load Balancer, Multi-region, CI/CD.
 ├── README-DEMO.md              ← YOU ARE HERE
 ├── DEMO.md                     ← Complete script
 ├── DEMO-CHEATSHEET.md          ← Quick commands
-├── run-demo.sh                 ← Automated script
+├── bin/run-demo.sh                 ← Automated script
 ├── README.md                   ← Technical documentation
 ├── QUICKSTART.md               ← Quick start
-├── ansible/
+├── shared/ansible/
 │   └── nginx.yml               ← Nginx configuration
-├── packer/
+├── clouds/gcp/packer/
 │   └── gce-nginx.pkr.hcl      ← Image template
-└── terraform/
+└── clouds/gcp/terraform/
     └── *.tf                    ← Infrastructure
 ```
 
@@ -289,7 +289,7 @@ A: Add: Auto Scaling, Load Balancer, Multi-region, CI/CD.
 ### Cleanup
 ```bash
 # Destroy resources
-cd terraform && terraform destroy -auto-approve && cd ..
+cd clouds/gcp/terraform && terraform destroy -auto-approve && cd ..
 
 # Delete images (optional)
 gcloud compute images list --filter="family:nginx-immutable-family" \
@@ -309,7 +309,7 @@ gcloud compute images list --filter="family:nginx-immutable-family" \
 1. Read **DEMO.md** for complete details
 2. Use **DEMO-CHEATSHEET.md** for quick commands
 3. Consult **COMANDOS.md** for reference
-4. Execute `./run-demo.sh --help`
+4. Execute `./bin/run-demo.sh --help`
 
 ---
 

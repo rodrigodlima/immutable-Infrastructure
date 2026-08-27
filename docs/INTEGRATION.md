@@ -41,7 +41,7 @@ gcloud auth application-default print-access-token
 
 ```bash
 # 2.1 - Create Packer variables file
-cat > packer/variables.pkrvars.hcl <<EOF
+cat > clouds/gcp/packer/variables.pkrvars.hcl <<EOF
 project_id   = "$PROJECT_ID"
 zone         = "$ZONE"
 image_name   = "nginx-immutable"
@@ -49,7 +49,7 @@ image_family = "nginx-immutable-family"
 EOF
 
 # 2.2 - Create Terraform variables file
-cat > terraform/terraform.tfvars <<EOF
+cat > clouds/gcp/terraform/terraform.tfvars <<EOF
 project_id    = "$PROJECT_ID"
 region        = "$REGION"
 zone          = "$ZONE"
@@ -61,10 +61,10 @@ EOF
 
 # 2.3 - Verify configurations
 echo "=== Packer Configuration ==="
-cat packer/variables.pkrvars.hcl
+cat clouds/gcp/packer/variables.pkrvars.hcl
 
 echo -e "\n=== Terraform Configuration ==="
-cat terraform/terraform.tfvars
+cat clouds/gcp/terraform/terraform.tfvars
 ```
 
 ### STEP 3: Validate Configurations (2 minutes)
@@ -72,15 +72,15 @@ cat terraform/terraform.tfvars
 ```bash
 # 3.1 - Validate Ansible playbook
 echo "Validating Ansible..."
-ansible-playbook ansible/nginx.yml --syntax-check
+ansible-playbook shared/ansible/nginx.yml --syntax-check
 
 # 3.2 - Validate Packer template
 echo "Validating Packer..."
-packer validate -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
+packer validate -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
 
 # 3.3 - Validate Terraform configuration
 echo "Validating Terraform..."
-cd terraform
+cd clouds/gcp/terraform
 terraform init
 terraform validate
 cd ..
@@ -93,7 +93,7 @@ echo "✅ All validations passed!"
 ```bash
 # 4.1 - Start Packer build
 echo "=== Starting image build ==="
-packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
+packer build -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
 
 # Expected output:
 # ==> googlecompute: Creating temporary RSA SSH key...
@@ -126,9 +126,9 @@ gcloud compute images describe $IMAGE_NAME --format=json | jq '{
 }'
 
 # 4.4 - View Packer manifest
-if [ -f "packer-manifest.json" ]; then
+if [ -f "clouds/gcp/packer-manifest.json" ]; then
   echo -e "\n=== Packer Manifest ==="
-  cat packer-manifest.json | jq
+  cat clouds/gcp/packer-manifest.json | jq
 fi
 ```
 
@@ -136,7 +136,7 @@ fi
 
 ```bash
 # 5.1 - Initialize Terraform (if not done yet)
-cd terraform
+cd clouds/gcp/terraform
 terraform init
 
 # 5.2 - View execution plan
@@ -177,7 +177,7 @@ cd ..
 
 ```bash
 # 6.1 - Get information
-cd terraform
+cd clouds/gcp/terraform
 NGINX_IP=$(terraform output -raw external_ip)
 NGINX_URL=$(terraform output -raw nginx_url)
 SSH_CMD=$(terraform output -raw ssh_command)
@@ -243,20 +243,20 @@ gcloud compute instances describe nginx-immutable-demo \
 
 ```bash
 # 1. Modify Ansible playbook
-nano ansible/nginx.yml
+nano shared/ansible/nginx.yml
 
 # 2. Validate changes
-ansible-playbook ansible/nginx.yml --syntax-check
+ansible-playbook shared/ansible/nginx.yml --syntax-check
 
 # 3. Create new image
-packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
+packer build -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
 
 # 4. View available new images
 gcloud compute images list --filter="family:nginx-immutable-family" \
   --format="table(name,family,creationTimestamp)"
 
 # 5. Recreate instance with new image
-cd terraform
+cd clouds/gcp/terraform
 terraform apply -replace=google_compute_instance.nginx_server
 
 # 6. Validate new version
@@ -268,10 +268,10 @@ curl $NGINX_IP
 
 ```bash
 # 1. Create new image (Green)
-packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
+packer build -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
 
 # 2. Create new Green instance (without destroying Blue)
-cd terraform
+cd clouds/gcp/terraform
 terraform apply -var="instance_name=nginx-green"
 
 # 3. Test Green
@@ -291,7 +291,7 @@ terraform destroy -target=google_compute_instance.nginx_blue
 
 ```bash
 # 1. Destroy Terraform infrastructure
-cd terraform
+cd clouds/gcp/terraform
 terraform destroy -auto-approve
 cd ..
 
@@ -318,8 +318,8 @@ echo "✅ Complete cleanup!"
 ```bash
 # 1. Run in debug mode
 PACKER_LOG=1 packer build \
-  -var-file=packer/variables.pkrvars.hcl \
-  packer/gce-nginx.pkr.hcl
+  -var-file=clouds/gcp/packer/variables.pkrvars.hcl \
+  clouds/gcp/packer/gce-nginx.pkr.hcl
 
 # 2. Check logs
 cat packer.log
@@ -411,13 +411,13 @@ stages:
 
 validate:
   script:
-    - ansible-playbook ansible/nginx.yml --syntax-check
-    - packer validate packer/gce-nginx.pkr.hcl
+    - ansible-playbook shared/ansible/nginx.yml --syntax-check
+    - packer validate clouds/gcp/packer/gce-nginx.pkr.hcl
     - terraform validate
 
 build:
   script:
-    - packer build packer/gce-nginx.pkr.hcl
+    - packer build clouds/gcp/packer/gce-nginx.pkr.hcl
 
 deploy:
   script:

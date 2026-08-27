@@ -5,21 +5,21 @@
 ### If you want to...
 
 #### 🎬 **Do the demonstration** → Start here!
-1. **[README-DEMO.md](README-DEMO.md)** - Demo overview
-2. **[DEMO.md](DEMO.md)** - Complete step-by-step guide
-3. **[DEMO-CHEATSHEET.md](DEMO-CHEATSHEET.md)** - Ready-to-copy/paste commands
+1. **[README-DEMO.md](demo/README-DEMO.md)** - Demo overview
+2. **[DEMO.md](demo/DEMO.md)** - Complete step-by-step guide
+3. **[DEMO-CHEATSHEET.md](demo/DEMO-CHEATSHEET.md)** - Ready-to-copy/paste commands
 
 #### 🚀 **Quick deploy (without presentation)**
 1. **[QUICKSTART.md](QUICKSTART.md)** - 5 minutes to deploy
-2. Execute: `./deploy.sh --full`
+2. Execute: `./bin/deploy.sh --full`
 
 #### 📖 **Understand the project in detail**
-1. **[README.md](README.md)** - Complete documentation (12+ pages)
-2. **[ESTRUTURA.md](ESTRUTURA.md)** - Executive summary
-3. **[INTEGRACAO.md](INTEGRACAO.md)** - How everything integrates
+1. **[README.md](../README.md)** - Complete documentation (12+ pages)
+2. **[ESTRUTURA.md](STRUCTURE.md)** - Executive summary
+3. **[INTEGRACAO.md](INTEGRATION.md)** - How everything integrates
 
 #### 🔧 **Command reference**
-1. **[COMANDOS.md](COMANDOS.md)** - All useful commands
+1. **[COMANDOS.md](COMMANDS.md)** - All useful commands
 
 ---
 
@@ -40,18 +40,18 @@
 ├── 🎬 DEMONSTRATION
 │   ├── DEMO.md                      📝 Complete demo script
 │   ├── DEMO-CHEATSHEET.md           ⚡ Quick commands
-│   └── run-demo.sh                  🤖 Automated script
+│   └── bin/run-demo.sh                  🤖 Automated script
 │
 ├── 🔧 SCRIPTS
-│   └── deploy.sh                    🚀 Automatic deploy
+│   └── bin/deploy.sh                    🚀 Automatic deploy
 │
 ├── 📁 SOURCE CODE
-│   ├── ansible/                     🔧 Configuration
+│   ├── shared/ansible/                     🔧 Configuration
 │   │   └── nginx.yml
-│   ├── packer/                      📦 Image creation
+│   ├── clouds/gcp/packer/                      📦 Image creation
 │   │   ├── gce-nginx.pkr.hcl
 │   │   └── variables.pkrvars.hcl.example
-│   └── terraform/                   🏗️ Infrastructure
+│   └── clouds/gcp/terraform/                   🏗️ Infrastructure
 │       ├── main.tf
 │       ├── variables.tf
 │       ├── outputs.tf
@@ -121,25 +121,25 @@ Execute
 |---------|-----------|-------------|
 | **DEMO.md** | Complete demonstration script<br>Detailed step by step<br>Talking points included | Do presentation<br>Follow complete script |
 | **DEMO-CHEATSHEET.md** | Ready-to-copy/paste commands<br>Divided by demo part | During demo<br>Quick reference |
-| **run-demo.sh** | Automated script that executes entire demo | Automatic demo<br>Complete test |
+| **bin/run-demo.sh** | Automated script that executes entire demo | Automatic demo<br>Complete test |
 
 ### 🔧 Scripts
 
 | File | Description | When to Use |
 |---------|-----------|-------------|
-| **deploy.sh** | Interactive menu for deploy<br>Automatic validation | Daily deploy<br>Project management |
+| **bin/deploy.sh** | Interactive menu for deploy<br>Automatic validation | Daily deploy<br>Project management |
 
 ### 📁 Source Code
 
 | Directory/File | Description |
 |-------------------|-----------|
-| **ansible/nginx.yml** | Playbook to install and configure Nginx |
-| **packer/gce-nginx.pkr.hcl** | Template to create GCE image |
-| **packer/variables.pkrvars.hcl.example** | Example Packer variables |
-| **terraform/main.tf** | Main resources (instance, firewall, IP) |
-| **terraform/variables.tf** | Variable definitions |
-| **terraform/outputs.tf** | Outputs (IP, URL, SSH commands) |
-| **terraform/terraform.tfvars.example** | Example Terraform variables |
+| **shared/ansible/nginx.yml** | Playbook to install and configure Nginx |
+| **clouds/gcp/packer/gce-nginx.pkr.hcl** | Template to create GCE image |
+| **clouds/gcp/packer/variables.pkrvars.hcl.example** | Example Packer variables |
+| **clouds/gcp/terraform/main.tf** | Main resources (instance, firewall, IP) |
+| **clouds/gcp/terraform/variables.tf** | Variable definitions |
+| **clouds/gcp/terraform/outputs.tf** | Outputs (IP, URL, SSH commands) |
+| **clouds/gcp/terraform/terraform.tfvars.example** | Example Terraform variables |
 
 ---
 
@@ -163,9 +163,9 @@ Execute
 ### Scenario 3: "Want to adapt for my project"
 ```
 1. Understand: README.md + ESTRUTURA.md
-2. Modify: ansible/nginx.yml (your app)
-3. Adjust: packer/*.pkr.hcl (your configs)
-4. Customize: terraform/*.tf (your infra)
+2. Modify: shared/ansible/nginx.yml (your app)
+3. Adjust: clouds/gcp/packer/*.pkr.hcl (your configs)
+4. Customize: clouds/gcp/terraform/*.tf (your infra)
 ```
 
 ### Scenario 4: "Something went wrong"
@@ -217,8 +217,8 @@ Execute
 | 🔧 **See a command** | COMANDOS.md |
 | 🐛 **Solve error** | COMANDOS.md (troubleshooting) + INTEGRACAO.md |
 | 📊 **Present to team** | ESTRUTURA.md + DEMO.md |
-| 🤖 **Automate everything** | run-demo.sh or deploy.sh |
-| 🔄 **Modify and adapt** | All files in ansible/, packer/, terraform/ |
+| 🤖 **Automate everything** | bin/run-demo.sh or bin/deploy.sh |
+| 🔄 **Modify and adapt** | All files in shared/ansible/, clouds/gcp/packer/, clouds/gcp/terraform/ |
 
 ---
 

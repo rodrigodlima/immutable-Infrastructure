@@ -10,7 +10,7 @@ The Nginx page displays a visual **version banner** that you can easily change b
 
 ### 1. Initial Deploy (Version 1.0)
 
-The initial version is already configured in the `ansible/nginx.yml` file:
+The initial version is already configured in the `shared/ansible/nginx.yml` file:
 
 ```yaml
 deployment_version: "v1.0"
@@ -21,7 +21,7 @@ deployment_color: "#4285f4"  # Blue
 Run the complete deploy:
 
 ```bash
-./deploy.sh --full
+./bin/deploy.sh --full
 ```
 
 Access the page and show:
@@ -30,7 +30,7 @@ Access the page and show:
 
 ### 2. Simulating an Update (Version 2.0)
 
-Edit the `ansible/nginx.yml` file (lines 7-9) and change to:
+Edit the `shared/ansible/nginx.yml` file (lines 7-9) and change to:
 
 ```yaml
 deployment_version: "v2.0"
@@ -41,14 +41,14 @@ deployment_color: "#34a853"  # Green
 Recreate the image and redeploy:
 
 ```bash
-./deploy.sh --packer    # Creates new image with v2.0
-./deploy.sh --update    # Updates the instance (replaces with new one)
+./bin/deploy.sh --packer    # Creates new image with v2.0
+./bin/deploy.sh --update    # Updates the instance (replaces with new one)
 ```
 
 Or use the direct Terraform command:
 ```bash
-./deploy.sh --packer
-cd terraform
+./bin/deploy.sh --packer
+cd clouds/gcp/terraform
 terraform apply -replace=google_compute_instance.nginx_server -auto-approve
 ```
 
@@ -78,8 +78,8 @@ deployment_color: "#ea4335"  # Red
 Run again:
 
 ```bash
-./deploy.sh --packer
-./deploy.sh --terraform
+./bin/deploy.sh --packer
+./bin/deploy.sh --terraform
 ```
 
 ## Version Suggestions for Demonstration
@@ -130,7 +130,7 @@ If you receive the error `Error 400: External IP address is already in-use`, use
 
 ### Option 1: Use the replace command (Recommended - Zero Downtime)
 ```bash
-cd terraform
+cd clouds/gcp/terraform
 terraform apply -replace=google_compute_instance.nginx_server
 cd ..
 ```
@@ -148,14 +148,14 @@ This command:
 
 ### Option 3: Destroy and recreate manually
 ```bash
-./deploy.sh --destroy  # Remove everything
-./deploy.sh --terraform # Create again
+./bin/deploy.sh --destroy  # Remove everything
+./bin/deploy.sh --terraform # Create again
 ```
 
 ### Option 4: Remove only the instance via gcloud
 ```bash
 gcloud compute instances delete nginx-immutable-demo-TIMESTAMP --zone=us-central1-a
-./deploy.sh --terraform
+./bin/deploy.sh --terraform
 ```
 
 ## Deploy Strategies
@@ -180,10 +180,10 @@ To demonstrate a rollback to a previous version:
 
 1. List available images:
 ```bash
-./deploy.sh --list
+./bin/deploy.sh --list
 ```
 
-2. Edit `terraform/main.tf` and change `image_family` to use a specific image:
+2. Edit `clouds/gcp/terraform/main.tf` and change `image_family` to use a specific image:
 ```hcl
 boot_disk {
   initialize_params {
@@ -194,7 +194,7 @@ boot_disk {
 
 3. Apply:
 ```bash
-./deploy.sh --terraform
+./bin/deploy.sh --terraform
 ```
 
 ## Presentation Tips

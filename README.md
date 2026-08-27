@@ -1,8 +1,25 @@
-# 🚀 Immutable Infrastructure Demo - GCP
+# Immutable Infrastructure Demo - Multi-Cloud
 
-Complete demonstration of **Immutable Infrastructure** using **Packer**, **Ansible** and **Terraform** on Google Cloud Platform.
+Complete demonstration of **Immutable Infrastructure** using **Packer**, **Ansible** and **Terraform**.
 
-## 📋 What is Immutable Infrastructure?
+| Cloud | Status | Image builder | Compute |
+|-------|--------|---------------|---------|
+| **GCP** | Implemented | Compute Engine image | GCE instance |
+| **AWS** | Planned | AMI | EC2 instance |
+| **Azure** | Planned | Shared Image Gallery | Linux VM |
+
+Every cloud lives under `clouds/<provider>/` and shares the same Ansible
+playbook, so the workflow is identical no matter where you deploy:
+
+```bash
+./bin/deploy.sh --cloud gcp --full      # today
+./bin/deploy.sh --cloud aws --full      # once clouds/aws is implemented
+./bin/deploy.sh --cloud azure --full    # once clouds/azure is implemented
+```
+
+> The examples below use **GCP**, the reference implementation.
+
+## What is Immutable Infrastructure?
 
 Immutable infrastructure is a paradigm where servers are **never modified** after deployment. Instead of updating existing servers, you:
 
@@ -10,58 +27,85 @@ Immutable infrastructure is a paradigm where servers are **never modified** afte
 2. **Replace the old instance** with the new one
 3. **Eliminate runtime configurations**
 
-### Benefits:
-- ✅ More reliable and predictable deployments
-- ✅ Instant rollback to previous versions
-- ✅ Eliminates "configuration drift"
-- ✅ Facilitates testing and validation
-- ✅ Identical environments (dev/staging/prod)
+### Benefits
 
-## 🏗️ Project Architecture
+- More reliable and predictable deployments
+- Instant rollback to previous versions
+- Eliminates "configuration drift"
+- Facilitates testing and validation
+- Identical environments (dev/staging/prod)
+
+## Project Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
+┌──────────────────────────────────────────────────────────┐
 │  1. ANSIBLE                                              │
-│  - Defines configuration (installs Nginx)               │
-│  - Playbook: ansible/nginx.yml                          │
-└──────────────────┬──────────────────────────────────────┘
+│  - Defines configuration (installs Nginx)                │
+│  - Playbook: shared/ansible/nginx.yml                    │
+└──────────────────┬───────────────────────────────────────┘
                    │
                    ▼
-┌─────────────────────────────────────────────────────────┐
+┌──────────────────────────────────────────────────────────┐
 │  2. PACKER                                               │
-│  - Executes Ansible playbook                            │
-│  - Creates customized GCE image                         │
-│  - Adds tags and labels                                 │
-│  - Template: packer/gce-nginx.pkr.hcl                   │
-└──────────────────┬──────────────────────────────────────┘
+│  - Executes Ansible playbook                             │
+│  - Creates customized GCE image                          │
+│  - Adds tags and labels                                  │
+│  - Template: clouds/gcp/packer/gce-nginx.pkr.hcl         │
+└──────────────────┬───────────────────────────────────────┘
                    │
                    ▼
-┌─────────────────────────────────────────────────────────┐
+┌──────────────────────────────────────────────────────────┐
 │  3. TERRAFORM                                            │
-│  - Fetches image created by Packer                     │
-│  - Provisions GCE instance                              │
-│  - Configures firewall and networking                   │
-│  - Code: terraform/*.tf                                 │
-└─────────────────────────────────────────────────────────┘
+│  - Fetches image created by Packer                       │
+│  - Provisions GCE instance                               │
+│  - Configures firewall and networking                    │
+│  - Code: clouds/gcp/terraform/*.tf                       │
+└──────────────────────────────────────────────────────────┘
 ```
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 .
-├── ansible/
-│   └── nginx.yml                    # Ansible Playbook
-├── packer/
-│   ├── gce-nginx.pkr.hcl           # Packer Template
-│   └── variables.pkrvars.hcl.example
-└── terraform/
-    ├── main.tf                      # Main resources
-    ├── variables.tf                 # Variable definitions
-    ├── outputs.tf                   # Outputs
-    └── terraform.tfvars.example     # Variables example
+├── README.md                        # This file
+├── Makefile                         # Shortcuts: make deploy CLOUD=gcp
+├── bin/
+│   ├── deploy.sh                    # Cloud-aware deploy driver
+│   └── run-demo.sh                  # End-to-end demo (GCP)
+├── shared/                          # Cloud-agnostic assets
+│   └── ansible/
+│       └── nginx.yml                # Ansible playbook (used by every cloud)
+├── clouds/
+│   ├── gcp/                         # Implemented
+│   │   ├── packer/
+│   │   │   ├── gce-nginx.pkr.hcl    # Packer template (GCE image)
+│   │   │   └── variables.pkrvars.hcl.example
+│   │   ├── terraform/
+│   │   │   ├── main.tf              # Main resources
+│   │   │   ├── variables.tf         # Variable definitions
+│   │   │   ├── outputs.tf           # Outputs
+│   │   │   └── terraform.tfvars.example
+│   │   ├── scripts/
+│   │   │   └── update-instance.sh   # Blue-Green replacement
+│   │   └── README.md
+│   ├── aws/                         # Planned (AMI + EC2)
+│   │   └── README.md
+│   └── azure/                       # Planned (Shared Image Gallery + VM)
+│       └── README.md
+└── docs/
+    ├── INDEX.md                     # Documentation index
+    ├── QUICKSTART.md                # 5-minute guide
+    ├── COMMANDS.md                  # Command reference
+    ├── INTEGRATION.md               # How the tools fit together
+    ├── STRUCTURE.md                 # Project structure in depth
+    └── demo/                        # Demo scripts and cheatsheets
 ```
 
-## 🔧 Prerequisites
+Each cloud is self-contained under `clouds/<provider>/` and reuses the same
+Ansible playbook from `shared/ansible/`, so the image content is identical
+across providers - only the image builder and the provisioning layer change.
+
+## Prerequisites
 
 ### Required Tools
 
@@ -90,9 +134,9 @@ sudo apt install packer
 sudo apt install ansible
 ```
 
-## 🚀 Step by Step - Complete Deploy
+## Step by Step - Complete Deploy
 
-### 1️⃣ Configure GCP Project
+### 1. Configure GCP Project
 
 ```bash
 # Define GCP project
@@ -107,17 +151,16 @@ gcloud services enable cloudresourcemanager.googleapis.com
 gcloud auth application-default login
 ```
 
-### 2️⃣ Configure Variables
+### 2. Configure Variables
 
 **For Packer:**
 
 ```bash
 # Copy example file
-cd packer
-cp variables.pkrvars.hcl.example variables.pkrvars.hcl
+cp clouds/gcp/packer/variables.pkrvars.hcl.example clouds/gcp/packer/variables.pkrvars.hcl
 
 # Edit file and add your project_id
-nano variables.pkrvars.hcl
+nano clouds/gcp/packer/variables.pkrvars.hcl
 ```
 
 Content of `variables.pkrvars.hcl`:
@@ -132,11 +175,10 @@ image_family = "nginx-immutable-family"
 
 ```bash
 # Copy example file
-cd ../terraform
-cp terraform.tfvars.example terraform.tfvars
+cp clouds/gcp/terraform/terraform.tfvars.example clouds/gcp/terraform/terraform.tfvars
 
 # Edit file
-nano terraform.tfvars
+nano clouds/gcp/terraform/terraform.tfvars
 ```
 
 Content of `terraform.tfvars`:
@@ -150,17 +192,16 @@ image_family  = "nginx-immutable-family"
 environment   = "demo"
 ```
 
-### 3️⃣ Create Image with Packer
+### 3. Create Image with Packer
+
+Run from the project root directory:
 
 ```bash
-# Return to project root directory
-cd ..
-
 # Validate Packer template
-packer validate -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
+packer validate -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
 
 # Build image (takes ~5-10 minutes)
-packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
+packer build -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
 ```
 
 **What happens:**
@@ -179,10 +220,10 @@ gcloud compute images list --filter="family:nginx-immutable-family"
 gcloud compute images describe-from-family nginx-immutable-family
 ```
 
-### 4️⃣ Provision Infrastructure with Terraform
+### 4. Provision Infrastructure with Terraform
 
 ```bash
-cd terraform
+cd clouds/gcp/terraform
 
 # Initialize Terraform (download providers)
 terraform init
@@ -205,7 +246,7 @@ Type `yes` when prompted.
 3. Configures firewall rules (HTTP and SSH)
 4. Creates GCE instance using Packer image
 
-### 5️⃣ Access Application
+### 5. Access Application
 
 After `terraform apply`, you'll see the outputs:
 
@@ -231,9 +272,9 @@ xdg-open http://$NGINX_IP  # Linux
 open http://$NGINX_IP       # macOS
 ```
 
-You'll see the customized HTML page showing the immutable infrastructure stack!
+You'll see the customized HTML page showing the immutable infrastructure stack.
 
-### 6️⃣ Access Instance via SSH
+### 6. Access Instance via SSH
 
 ```bash
 # Via gcloud
@@ -246,19 +287,19 @@ sudo systemctl status nginx
 sudo journalctl -u nginx -f
 ```
 
-## 🔄 Update Workflow (Immutability in Practice)
+## Update Workflow (Immutability in Practice)
 
 When you need to make a change (e.g., update Nginx or add a package):
 
 ```bash
 # 1. Modify Ansible playbook
-nano ansible/nginx.yml
+nano shared/ansible/nginx.yml
 
 # 2. Create new image with Packer
-packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
+packer build -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
 
 # 3. Recreate instance with Terraform
-cd terraform
+cd clouds/gcp/terraform
 terraform apply -replace=google_compute_instance.nginx_server
 
 # Or destroy and recreate
@@ -266,13 +307,13 @@ terraform destroy -target=google_compute_instance.nginx_server
 terraform apply
 ```
 
-**Important:** Never SSH to the instance to make manual changes! This breaks the immutability principle.
+**Important:** Never SSH to the instance to make manual changes. This breaks the immutability principle.
 
-## 🧹 Resource Cleanup
+## Resource Cleanup
 
 ```bash
 # Destroy instance and Terraform resources
-cd terraform
+cd clouds/gcp/terraform
 terraform destroy
 
 # Delete images created by Packer (optional)
@@ -280,7 +321,7 @@ gcloud compute images list --filter="family:nginx-immutable-family" --format="va
   xargs -I {} gcloud compute images delete {} --quiet
 ```
 
-## 📊 Useful Commands
+## Useful Commands
 
 ### Check Created Images
 
@@ -309,16 +350,16 @@ gcloud compute instances get-serial-port-output nginx-immutable-demo --zone=us-c
 
 ```bash
 # Debug mode (keeps temporary VM in case of error)
-packer build -debug -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
+packer build -debug -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
 
 # View generated manifest
-cat packer-manifest.json | jq
+cat clouds/gcp/packer-manifest.json | jq
 ```
 
 ### Terraform State Management
 
 ```bash
-cd terraform
+cd clouds/gcp/terraform
 
 # View current state
 terraform show
@@ -330,14 +371,14 @@ terraform state list
 terraform output nginx_url
 ```
 
-## 🎯 Use Cases
+## Use Cases
 
 ### Create Multiple Instances
 
 To create multiple instances from the same image:
 
 ```bash
-cd terraform
+cd clouds/gcp/terraform
 
 # Modify main.tf to add count or for_each
 # Or use Terraform modules
@@ -349,7 +390,7 @@ terraform apply
 
 ```bash
 # 1. Create new image (green)
-packer build -var-file=packer/variables.pkrvars.hcl packer/gce-nginx.pkr.hcl
+packer build -var-file=clouds/gcp/packer/variables.pkrvars.hcl clouds/gcp/packer/gce-nginx.pkr.hcl
 
 # 2. Create new instance (green)
 terraform apply -var="instance_name=nginx-green"
@@ -362,7 +403,7 @@ curl http://NEW_IP
 terraform destroy -target=google_compute_instance.nginx_server
 ```
 
-## 🔐 Best Practices
+## Best Practices
 
 1. **Never make manual changes to instances** - always recreate via Packer + Terraform
 2. **Use image versioning** - Packer automatically adds timestamp
@@ -371,7 +412,7 @@ terraform destroy -target=google_compute_instance.nginx_server
 5. **Use Terraform workspaces** - to manage multiple environments
 6. **Document changes** - maintain a CHANGELOG for images
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Error: "Image not found"
 
@@ -380,8 +421,8 @@ terraform destroy -target=google_compute_instance.nginx_server
 gcloud compute images list --filter="family:nginx-immutable-family"
 
 # Verify image_family is correct in both files
-grep image_family packer/variables.pkrvars.hcl
-grep image_family terraform/terraform.tfvars
+grep image_family clouds/gcp/packer/variables.pkrvars.hcl
+grep image_family clouds/gcp/terraform/terraform.tfvars
 ```
 
 ### Error: Packer timeout or SSH
@@ -410,7 +451,7 @@ gcloud auth application-default login
 gcloud projects get-iam-policy $PROJECT_ID
 ```
 
-## 📚 Important Concepts
+## Important Concepts
 
 ### Packer
 - **Builder**: Creates VMs on different clouds (GCP, AWS, Azure)
@@ -428,7 +469,7 @@ gcloud projects get-iam-policy $PROJECT_ID
 - **Data Source**: Fetches existing information (images, VPCs)
 - **State**: File that tracks managed resources
 
-## 🎓 Next Steps
+## Next Steps
 
 1. **Add Load Balancer**: Distribute traffic among multiple instances
 2. **Implement Auto Scaling**: Scale based on metrics
@@ -437,14 +478,14 @@ gcloud projects get-iam-policy $PROJECT_ID
 5. **Vault Integration**: Manage secrets securely
 6. **Multi-region**: Deploy in multiple regions
 
-## 🤝 Contributing
+## Contributing
 
-Feel free to adapt this project to your needs!
+Feel free to adapt this project to your needs.
 
-## 📄 License
+## License
 
 This project is open-source and available for educational use.
 
 ---
 
-**Developed to demonstrate Immutable Infrastructure** 🚀
+**Developed to demonstrate Immutable Infrastructure**
